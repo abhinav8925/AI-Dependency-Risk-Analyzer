@@ -10,7 +10,7 @@ AI-powered scanner detecting vulnerabilities, license issues, and supply-chain a
 - Cloud-native microservices improving threat detection accuracy by **35%**
 
 ## GitHub & Live Links
-## [GitHub](https://github.com/) | [Live](https://netlify.com
+ [GitHub]() | [Live]()
 
 ## Installation
 1. Clone the repo: `git clone <repo-link>`  
