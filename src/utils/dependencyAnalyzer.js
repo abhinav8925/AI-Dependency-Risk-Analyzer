@@ -1,32 +1,39 @@
-const {calculateProjectRisk} = require("../services/projectRisk.service.js")
+const generateSignals = require("../services/dependencySignal.service")
+function analyzeDependencies(dependencies={}){
 
-function analyzeDependencies(dependencies = {}) {
-    const result = [];
+    console.log("🔥 DEPENDENCY ANALYZER FILE LOADED 🔥");
+    const analyzedDependencies = [];
 
-    for (const [name, version] of Object.entries(dependencies)) {
+    for(const [name, version] of Object.entries(dependencies)){
         let riskLevel = "low";
-
-        if (version.includes("alpha") || version.includes("beta")) {
-            riskLevel = "high";
-        } else if (version.startsWith("^0")) {
+        if(version.includes("^") || version.includes("~")){
             riskLevel = "medium";
         }
-        let riskScore = 0;
+        if(version==="*" || version === "latest")
+                riskLevel = "high";
+        
+        let riskScore =0;
+        if(riskLevel === "low") riskScore =1;
+        if(riskLevel === "medium") riskScore =5;
+        if(riskLevel === "high") riskScore = 10;
+        
 
-        if (riskLevel === "low") riskScore = 1;
-        if (riskLevel === "medium") riskScore = 5;
-        if (riskLevel === "high") riskScore = 10;
 
-
-        result.push({
-            name,
+        console.log("SIGNAL INPUT -> ", {name, version, riskLevel});
+        
+        const signals = generateSignals({
+            name, version, riskLevel
+        });
+        
+        analyzedDependencies.push({
+            name, 
             version,
             riskLevel,
-            riskScore
+            riskScore,
+            signals
         });
     }
-
-    return result;
+    return analyzedDependencies;
 }
 
 module.exports = analyzeDependencies;

@@ -3,6 +3,7 @@ const analyzeDependencies = require("../utils/dependencyAnalyzer");
 const { calculateProjectRisk } = require("./projectRisk.service");
 const applyRiskPolicies =require("./riskPolicy.service");
 
+
 function buildRiskStats(analyzedList){
     let high =0, medium=0,low=0;
 
