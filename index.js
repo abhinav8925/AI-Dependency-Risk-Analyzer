@@ -93,22 +93,11 @@
 //     // console.log("devDependencies: ", devDependencies);
 
 
-const http = require("http");
-const multer = require('multer');
-const express = require('express')
-const fs = require("fs");
-const { version } = require("os");
 
-const app = express();
-const PORT = 3000;
-const upload = multer({dest: "uploads/"});
-const errorHandler = require("./src/middlewares/errorHandler");
-const validateUpload = require("./src/middlewares/validateUpload")
-const vulnerabilityDB = require("./src/data/vulnerabilityDB")
+// const upload = multer({dest: "uploads/"});
+// const errorHandler = require("./src/middlewares/errorHandler");
+
 // const analyzeDependencies = require("./src/services/dependencyService")
-
-
-app.use(express.json());
 // app.use((req, res, next)=>{
 //     console.log("Middleware Hit");
 //     console.log("Method: ", req.method);
@@ -422,31 +411,123 @@ app.use(express.json());
 //     }
 // })
 
+const http = require("http");
+const multer = require('multer');
+const express = require('express')
+const fs = require("fs");
+const { version } = require("os");
+const AppError = require("./src/utils/apiError");
+const {successResponse} = require("./src/utils/response");
 const analyzePackage = require("./src/services/dependencyService");
+const validateUpload = require("./src/middlewares/validateUpload")
+const vulnerabilityDB = require("./src/data/vulnerabilityDB")
+
+const app = express();
+const PORT = 3000;
+app.use(express.json());
+
+if (!fs.existsSync("uploads")) {
+    fs.mkdirSync("uploads");
+}
+const storage = multer.diskStorage({
+    destination: "uploads/",
+    filename: (req, file, cb) =>{
+        cb(null, `${Date.now()}- ${file.originalname}`);
+    }
+});
+const upload = multer({
+    storage,
+    fileFilter: (req, file, cb) =>{
+        if(file.mimetype !== "application/json"){
+            return cb(
+                new AppError(
+                    "Only JSON files are allowed",
+                    400,
+                    "INVALID_FILE_TYPE"
+                )
+            );
+        }
+        cb(null, true);
+    }
+});
+
+
+
+
+
 
 app.post("/analyze", upload.single("file"), (req, res, next) => {
+    const startTime = Date.now();
     try {
-        const filePath = req.file.path;
-        const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        if (!req.file) {
+            throw new AppError(
+                "No file uploaded",
+                400,
+                "FILE_MISSING"
+            );
+        }
+
+       
+        // const filePath = req.file.path;
+        const rawData = fs.readFileSync(req.file.path, "utf-8").trim();
+        if(!rawData){
+            throw new AppError(
+                "No dependencies found in package.json",
+                422,
+                "NO_DEPENDENCIES"
+            );
+        }
+        let fileData;
+        try{
+            fileData = JSON.parse(fs.readFileSync(req.file.path, "utf-8"));
+        }catch(err){
+            throw new AppError(
+                "Invalid JSON format",
+                400,
+                "INVALID_JSON"
+            );
+        }
+        // const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+        const hasDeps = fileData.dependencies && Object.keys(fileData.dependencies).length > 0;
+        const hasDevDeps = fileData.devDependencies && Object.keys(fileData.devDependencies).length > 0;
+        
+        if(!hasDeps && !hasDevDeps){
+            throw new AppError(
+                "No dependencies found in package.json",
+                422,
+                "NO_DEPENDENCIES"
+            );
+        }
         
         const result = analyzePackage(
             fileData.dependencies,
             fileData.devDependencies
         );
 
-        return res.status(200).json({
-            success: true,
-            data: result
-        });
+        
+
+        // return res.status(200).json({
+        //     success: true,
+        //     data: result
+        // });
+        return successResponse(
+            res,
+            "Package analyzed successfully",
+             result,
+             200,
+             startTime
+        );
     } catch (error) {
         next(error);
     }
 });
 
 
+const errorHandler = require("./src/middlewares/errorHandler");
+app.use(errorHandler);
 
 app.listen(PORT, ()=>{
     console.log(`Server running on port ${PORT}`);
     
 });
-app.use(errorHandler);
+

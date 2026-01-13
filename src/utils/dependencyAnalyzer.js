@@ -1,7 +1,7 @@
 const generateSignals = require("../services/dependencySignal.service")
 function analyzeDependencies(dependencies={}){
 
-    console.log("🔥 DEPENDENCY ANALYZER FILE LOADED 🔥");
+    // console.log("🔥 DEPENDENCY ANALYZER FILE LOADED 🔥");
     const analyzedDependencies = [];
 
     for(const [name, version] of Object.entries(dependencies)){
@@ -19,7 +19,7 @@ function analyzeDependencies(dependencies={}){
         
 
 
-        console.log("SIGNAL INPUT -> ", {name, version, riskLevel});
+        // console.log("SIGNAL INPUT -> ", {name, version, riskLevel});
         
         const signals = generateSignals({
             name, version, riskLevel

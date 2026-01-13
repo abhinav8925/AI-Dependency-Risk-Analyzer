@@ -1,13 +1,22 @@
-const errorHandler = (err, req, res, next) => {
+const AppError = require("../utils/apiError");
 
-    console.log(err.stack);
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+module.exports = (err, req, res, next) =>{
 
-    res.status(statusCode).json({
+    console.log("ERROR: ", err);
+    const status = err.statusCode || 500;
+    const code  = err.code || "INTERNAL_ERROR";
+
+    res.status(status).json({
         success: false,
-        message
+        error:{
+            message: err.message || "Something Went Wrong",
+            code,
+            status
+        },
+        meta:{
+            "apiVerison": "v1",
+            timestamp: new Date().toISOString()
+        }
     });
     
 };
-module.exports = errorHandler;

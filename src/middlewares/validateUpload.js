@@ -1,14 +1,22 @@
+const AppError = require("../utils/apiError");
 const validateUpload = (req, res, next) => {
     if(!req.file){
-        const error = new Error("File is required");
-        error.statusCode = 400;
-        return next(error);
+        return next(
+            new AppError(
+                "package.json file is required",
+                400,
+                "FILE_MISSING"
+            )
+        );
     }
-
     if(req.file.mimetype !== "application/json"){
-        const error = new Error("Only JSON files allowed");
-        error.StatusCode = 400;
-        return next(error);
+        return next(
+            new AppError(
+                "Only JSON are allowed",
+                400,
+                "INVALID_FILE_TYPE"
+            )
+        );
     }
     next();
 }
