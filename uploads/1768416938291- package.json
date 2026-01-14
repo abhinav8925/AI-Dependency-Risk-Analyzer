@@ -1,0 +1,22 @@
+{
+  "name": "risk-analyzer-test-app",
+  "version": "1.0.0",
+  "description": "Test project for AI-Powered Dependency Risk Analyzer",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Running tests\""
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "lodash": "4.17.11",
+    "request": "2.88.0",
+    "moment": "2.29.1",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "eslint": "^7.32.0",
+    "mocha": "^8.4.0",
+    "chalk": "^4.1.2"
+  }
+}

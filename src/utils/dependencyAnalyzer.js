@@ -44,9 +44,11 @@ function analyzeDependencies(dependencies={}){
         analyzedDependencies.push({
             name, 
             version,
-            riskLevel:finalRiskLevel,
-            riskScore,
-            signals,
+            // riskLevel:finalRiskLevel,
+            // riskScore,
+            // signals,
+            // vulnerabilities
+            vulnerable: vulnerabilities.length>0,
             vulnerabilities
         });
     }
