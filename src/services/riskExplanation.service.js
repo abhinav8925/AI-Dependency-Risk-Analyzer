@@ -1,16 +1,23 @@
 function generateRiskExplanation(projectRisk){
-    const {severity, breakdown} = projectRisk;
+    const {severity, breakdown, totalDependencies} = projectRisk;
 
-    if(severity === "SAFE")
-        return "This project is safe because all dependencies use stable versions with no high-risk indicators.";
+    switch(severity){
+        case "DANGEROUS":
+            return `Project is classified as DANGEROUS due to the presence of ${breakdown.high} high-risk dependency and ${breakdown.medium} medium-risk dependencies. Immediate remedation is recommended.`;
+        
+        case "HIGH":
+            return `Project has elevated risk with ${breakdown.high} 
+            high-risk and ${breakdown.medium} medium-risk dependencies. Address high-risk packages promptly.`;
+        
+        case "MODERATE":
+            return `Project shows moderate risk with ${breakdown.medium} medium-risk dependencies. Monitoring and gradual fixes are advised`;
+        
+        case "LOW":
+            return `Project risk is low. All${totalDependencies} dependencies appear stable with no critical threats detected.`;
 
-    if(severity === "WARNING")
-        return `This project has moderate risk due to  ${breakdown.medium} dependencies using potentially unstable versions.`;
-
-    if(severity === "CRITICAL")
-        return `This project is high risk because ${breakdown.high} dependencies use alpha or beta versions. Immediate review is recommended.`;
-
-    return "Risk level could not be determined.";
+        default: 
+            return "Risk level could not be determined due to insufficient data.";
+    }
 }
 
 module.exports = generateRiskExplanation;

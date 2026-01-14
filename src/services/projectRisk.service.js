@@ -7,30 +7,28 @@ function calculateProjectRisk(depStats, devDepStats){
     
     let score = 0;
 
-    let low = 0, medium =0, high = 0;
+    let breakdown= {low : 0, medium :0, high : 0}
 
-    allDeps.forEach(dep => {
-
+    for(const dep of allDeps){
         score += dep.riskScore;
-        if(dep.riskLevel === "low") low++;
-        if(dep.riskLevel === "medium") medium++;
-        if(dep.riskLevel === "high") high++;
-    });
+        breakdown[dep.riskLevel]++;
+    }
+    
 
 
-    let  severity = "SAFE";
-    if(score >= 30)    severity= "CRITICAL";
-    else if(score >= 15) severity =  "WARNING";
+    let  severity = "LOW";
+    
+
+    if(breakdown.high>=2) severity = "CRITICAL";
+    else if(breakdown.high == 1)  severity = "HIGH";
+    else if(breakdown.medium>=3)  severity = "MODERATE";
+    
 
     return {
         totalDependencies:allDeps.length,
-        score: score,
+        score,
         severity,
-        breakdown : {
-            low,
-            medium,
-            high
-        }
+        breakdown
     };
 }
 

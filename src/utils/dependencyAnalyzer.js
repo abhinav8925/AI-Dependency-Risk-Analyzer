@@ -1,36 +1,53 @@
 const generateSignals = require("../services/dependencySignal.service")
+const {findVulnerabilities} = require("../services/vulnerability.service");
+const {overrideRiskByVulnerability} = require("../utils/riskEvaluator");
+
 function analyzeDependencies(dependencies={}){
 
     // console.log("🔥 DEPENDENCY ANALYZER FILE LOADED 🔥");
     const analyzedDependencies = [];
 
     for(const [name, version] of Object.entries(dependencies)){
-        let riskLevel = "low";
+        let baseRiskLevel = "low";
         if(version.includes("^") || version.includes("~")){
-            riskLevel = "medium";
+            baseRiskLevel = "medium";
         }
         if(version==="*" || version === "latest")
-                riskLevel = "high";
+                baseRiskLevel = "high";
         
-        let riskScore =0;
-        if(riskLevel === "low") riskScore =1;
-        if(riskLevel === "medium") riskScore =5;
-        if(riskLevel === "high") riskScore = 10;
         
+        
+        const vulnerabilities = findVulnerabilities(name, version);
+        // const finalRiskLevel = overrideRiskByVulnerability(vulnerabilities, riskLevel);
+        let finalRiskLevel = baseRiskLevel;
 
+        if(vulnerabilities.length > 0){
+            const hasHigh = vulnerabilities.some(v=>v.severity === "HIGH");
+            const hasMedium = vulnerabilities.some(v=> v.severity === "MEDIUM");
+
+            if(hasHigh) finalRiskLevel = "high";
+            else if(hasMedium && finalRiskLevel === "low") finalRiskLevel = "medium";
+        }
+
+        let riskScore =1;
+
+        if(finalRiskLevel === "medium") riskScore =5;
+        if(finalRiskLevel === "high") riskScore = 10;
 
         // console.log("SIGNAL INPUT -> ", {name, version, riskLevel});
         
+        
         const signals = generateSignals({
-            name, version, riskLevel
+            name, version, riskLevel:finalRiskLevel
         });
         
         analyzedDependencies.push({
             name, 
             version,
-            riskLevel,
+            riskLevel:finalRiskLevel,
             riskScore,
-            signals
+            signals,
+            vulnerabilities
         });
     }
     return analyzedDependencies;
