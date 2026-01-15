@@ -1,9 +1,13 @@
+const {evaluateEscalationPolicies} = require("./escalationPolicy.service");
+
 function calculateProjectRisk(depStats, devDepStats){
     
     const allDeps = [
         ...depStats.analyzed,
         ...devDepStats.analyzed
     ];
+
+    const violations = evaluateEscalationPolicies(allDeps);
     
     let score = 0;
 
@@ -11,22 +15,28 @@ function calculateProjectRisk(depStats, devDepStats){
 
     let hasCriticalVuln = false;
     let hasHighVuln = false;
+    let maxVulnSeverity = "LOW";
 
     for(const dep of allDeps){
         // score += dep.riskScore;
         // breakdown[dep.riskLevel]++;
 
+        
+
         if(dep.vulnerable && dep.vulnerabilities?.length){
             for(const vuln of dep.vulnerabilities){
-                if(vuln.severity === "HIGH"){
+                
+                if(vuln.severity === "CRITICAL"){
+                    breakdown.critical++;
+                    maxVulnSeverity = "CRITICAL";
+                    score+=vuln.cvssScore || 10;
+                    hasCriticalVuln = true;
+                }
+                if(vuln.severity === "HIGH" && maxVulnSeverity!=="CRITICAL"){
+                    maxVulnSeverity="HIGH"
                     breakdown.high++;
                     score+=vuln.cvssScore || 8;
                     hasHighVuln = true;    
-                }
-                if(vuln.severity === "CRITICAL"){
-                    breakdown.critical++;
-                    score+=vuln.cvssScore || 10;
-                    hasCriticalVuln = true;
                 }
         }
     }else{
@@ -41,19 +51,40 @@ function calculateProjectRisk(depStats, devDepStats){
     
 
 
-    let  severity = "LOW";
+    let  riskSeverity = "LOW";
     
 
-    if(hasCriticalVuln) severity = "CRITICAL";
-    else if(hasHighVuln)  severity = "HIGH";
-    else if(breakdown.medium>=3)  severity = "MODERATE";
+    // if(hasCriticalVuln) severity = "CRITICAL";
+    // else if(hasHighVuln)  severity = "HIGH";
+    // else if(breakdown.medium>=3)  severity = "MODERATE";
+    
     
 
+    if(maxVulnSeverity === "CRITICAL")  riskSeverity="CRITICAL";
+    else if(maxVulnSeverity === "HIGH")  riskSeverity="HIGH";
+    else if(breakdown.medium >= 3)  riskSeverity="MODERATE";
+
+    
+    let policySeverity = "LOW";
+
+    if(violations.some(v => v.severity === "CRITICAL")) policySeverity = "CRITICAL";
+    else if (violations.some(v => v.severity === "HIGH")) policySeverity = "HIGH";
+    else if(violations.some(v =>v.severity === "MODERATE")) policySeverity = "MODERATE";
+
+    const severityOrder = ["LOW", "MODERATE", "HIGH", "CRITICAL"]
+
+    const severity = severityOrder[
+        Math.max(
+            severityOrder.indexOf(riskSeverity),
+            severityOrder.indexOf(policySeverity)
+        )
+    ]
     return {
         totalDependencies:allDeps.length,
-        score,
+        score: Number(score.toFixed(1)),
         severity,
-        breakdown
+        policyViolations:violations
+        // breakdown
     };
 }
 

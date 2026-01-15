@@ -1,23 +1,20 @@
 function generateRiskExplanation(projectRisk){
-    const {severity, breakdown, totalDependencies} = projectRisk;
+    const {severity, totalDependencies, policyViolations=[]} = projectRisk;
 
-    switch(severity){
-        case "DANGEROUS":
-            return `Project is classified as DANGEROUS due to the presence of ${breakdown.high} high-risk dependency and ${breakdown.medium} medium-risk dependencies. Immediate remedation is recommended.`;
+    if(severity === "CRITICAL")
+            return `Project is CRITICAL. One or more critical vulnerabilities were detected. Immediate remediation is required.`;
         
-        case "HIGH":
-            return `Project has elevated risk with ${breakdown.high} 
-            high-risk and ${breakdown.medium} medium-risk dependencies. Address high-risk packages promptly.`;
+    if(severity === "HIGH")
+            return `Project has HIGH risk due to serious security vulnerabilites. Prompt action is strongly recommended.`;
         
-        case "MODERATE":
-            return `Project shows moderate risk with ${breakdown.medium} medium-risk dependencies. Monitoring and gradual fixes are advised`;
+    if(severity === "MODERATE")
+            return `Project shows moderate risk. Some dependencies require attention to prevent escalation`;
         
-        case "LOW":
+    if(severity === "LOW")
             return `Project risk is low. All${totalDependencies} dependencies appear stable with no critical threats detected.`;
 
-        default: 
-            return "Risk level could not be determined due to insufficient data.";
-    }
+    return "Risk level could not be determined due to insufficient data.";
+
 }
 
 module.exports = generateRiskExplanation;

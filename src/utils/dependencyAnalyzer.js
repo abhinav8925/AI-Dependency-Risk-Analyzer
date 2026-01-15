@@ -44,8 +44,8 @@ function analyzeDependencies(dependencies={}){
         analyzedDependencies.push({
             name, 
             version,
-            // riskLevel:finalRiskLevel,
-            // riskScore,
+            riskLevel:finalRiskLevel,
+            riskScore,
             // signals,
             // vulnerabilities
             vulnerable: vulnerabilities.length>0,
