@@ -4,6 +4,7 @@ const { calculateProjectRisk } = require("./projectRisk.service");
 const applyRiskPolicies =require("./riskPolicy.service");
 const calculateProjectSeverity = require ("../utils/projectSeverity")
 const {evaluateProjectPolicy} = require("./policyEngine.service");
+const {evaluateEscalation} = require("../engines/escalation/escalation.engine")
 
 
 function buildRiskStats(analyzedList){
@@ -30,6 +31,7 @@ function analyzePackage(dependencies={}, devDependencies={}){
     const analyzedDevDeps = analyzeDependencies(devDependencies);
 
     const allAnalyzedDeps = [...analyzedDeps, ...analyzedDevDeps];
+    const escalation = evaluateEscalation(allAnalyzedDeps);
 
     const dependencyStats = buildRiskStats(analyzedDeps)
     const devDependencyStats = buildRiskStats(analyzedDevDeps)
@@ -41,6 +43,7 @@ function analyzePackage(dependencies={}, devDependencies={}){
 
    
     const riskExplanation = generateRiskExplanation(policyAdjustedRisk);
+    
 
 
     const totalHigh = dependencies.high + devDependencies.high;
@@ -54,6 +57,7 @@ function analyzePackage(dependencies={}, devDependencies={}){
         devDependencies: devDependencyStats,
         projectRisk:policyAdjustedRisk,
         policy: policyResult,
+        escalation,
         riskExplanation
     };
 }

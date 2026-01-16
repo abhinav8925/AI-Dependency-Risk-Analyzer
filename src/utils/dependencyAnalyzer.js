@@ -1,24 +1,31 @@
 const generateSignals = require("../services/dependencySignal.service")
 const {findVulnerabilities} = require("../services/vulnerability.service");
 const {overrideRiskByVulnerability} = require("../utils/riskEvaluator");
+const {detectLicense} = require("../engines/license/licenseDetector.service");
+const {evaluateLicenseRisk} = require("../engines/license/licenseRisk.engine");
+
+
 
 function analyzeDependencies(dependencies={}){
 
-    // console.log("🔥 DEPENDENCY ANALYZER FILE LOADED 🔥");
+    
     const analyzedDependencies = [];
 
     for(const [name, version] of Object.entries(dependencies)){
         let baseRiskLevel = "low";
+        const license = detectLicense(name);
+        const {licenseRisk, reason} = evaluateLicenseRisk(license);
         if(version.includes("^") || version.includes("~")){
             baseRiskLevel = "medium";
         }
         if(version==="*" || version === "latest")
                 baseRiskLevel = "high";
+
+
         
         
         
         const vulnerabilities = findVulnerabilities(name, version);
-        // const finalRiskLevel = overrideRiskByVulnerability(vulnerabilities, riskLevel);
         let finalRiskLevel = baseRiskLevel;
 
         if(vulnerabilities.length > 0){
@@ -33,10 +40,7 @@ function analyzeDependencies(dependencies={}){
 
         if(finalRiskLevel === "medium") riskScore =5;
         if(finalRiskLevel === "high") riskScore = 10;
-
-        // console.log("SIGNAL INPUT -> ", {name, version, riskLevel});
-        
-        
+    
         const signals = generateSignals({
             name, version, riskLevel:finalRiskLevel
         });
@@ -49,9 +53,13 @@ function analyzeDependencies(dependencies={}){
             // signals,
             // vulnerabilities
             vulnerable: vulnerabilities.length>0,
-            vulnerabilities
+            vulnerabilities,
+            license,
+            licenseRisk,
+            licenseReason: reason
         });
     }
+
     return analyzedDependencies;
 }
 
