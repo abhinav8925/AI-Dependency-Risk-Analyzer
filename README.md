@@ -81,7 +81,7 @@ Not a toy project. Built with production intent.
 - Upload a project dependency file to detect security risks  
 
 
-👤 Author
+## Author
 
-Abhinav Anand
+Abhinav Anand || 
 Full-Stack Developer | Security-Focused Engineer
