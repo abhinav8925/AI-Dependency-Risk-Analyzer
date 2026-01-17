@@ -83,5 +83,5 @@ Not a toy project. Built with production intent.
 
 ## Author
 
-Abhinav Anand || 
+Abhinav Anand |
 Full-Stack Developer | Security-Focused Engineer
