@@ -2,10 +2,10 @@ An AI-ready backend service that analyzes project dependencies for security vuln
 
 ## Overview
 Modern software relies heavily on third-party dependencies, which introduces serious supply-chain risks such as:
-High-severity vulnerabilities
-Risky or unknown licenses
-Transitive dependency exposure
-Policy violations in CI/CD pipelines
+High-severity vulnerabilities,
+Risky or unknown licenses,
+Transitive dependency exposure,
+Policy violations in CI/CD pipelines,
 This project analyzes both production and development dependencies and provides a clear allow / warn / block decision using rule-based escalation policies.
 
 
