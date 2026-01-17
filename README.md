@@ -13,29 +13,29 @@ This project analyzes both production and development dependencies and provides 
 ## Key Features
 
 🔍 Dependency Analysis
-Separates dependencies and devDependencies
-Version-based risk detection (^, ~, latest, *)
+Separates dependencies and devDependencies, 
+Version-based risk detection (^, ~, latest, *), 
 Individual dependency risk scoring
 
 🛡 Vulnerability Engine
-Detects known vulnerabilities per package
-Severity classification (LOW / MEDIUM / HIGH)
+Detects known vulnerabilities per package, 
+Severity classification (LOW / MEDIUM / HIGH), 
 CVSS-style metadata support
 
 📜 License Risk Engine
-Detects common licenses (MIT, Apache, GPL, Unknown)
-Assigns license risk levels
+Detects common licenses (MIT, Apache, GPL, Unknown), 
+Assigns license risk levels, 
 Flags licenses requiring legal review
 
 📐 Policy Engine
-Project-level policy evaluation
-Aggregates dependency risks
-Calculates overall project severity
+Project-level policy evaluation, 
+Aggregates dependency risks,
+Calculates overall project severity,
 
 🚨 Escalation Engine (Core Highlight)
-Rule-based ALLOW / WARN / BLOCK decisions
-Differentiates prod vs dev dependencies
-Multiple rules per dependency supported
+Rule-based ALLOW / WARN / BLOCK decisions,
+Differentiates prod vs dev dependencies,
+Multiple rules per dependency supported,
 Clean, structured escalation output
 
 ## Tech Staks
