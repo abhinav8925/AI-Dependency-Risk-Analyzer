@@ -6,7 +6,7 @@ const {evaluateLicenseRisk} = require("../engines/license/licenseRisk.engine");
 
 
 
-function analyzeDependencies(dependencies={}){
+function analyzeDependencies(dependencies={}, dependencyType="dependency"){
 
     
     const analyzedDependencies = [];
@@ -48,6 +48,7 @@ function analyzeDependencies(dependencies={}){
         analyzedDependencies.push({
             name, 
             version,
+            dependencyType,
             riskLevel:finalRiskLevel,
             riskScore,
             // signals,

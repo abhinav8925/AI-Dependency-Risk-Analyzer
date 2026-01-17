@@ -2,9 +2,9 @@ const generateRiskExplanation = require("./riskExplanation.service");
 const analyzeDependencies = require("../utils/dependencyAnalyzer");
 const { calculateProjectRisk } = require("./projectRisk.service");
 const applyRiskPolicies =require("./riskPolicy.service");
-const calculateProjectSeverity = require ("../utils/projectSeverity")
+// const calculateProjectSeverity = require ("../utils/projectSeverity")
 const {evaluateProjectPolicy} = require("./policyEngine.service");
-const {evaluateEscalation} = require("../engines/escalation/escalation.engine")
+const {evaluateEscalation} = require("../engines/escalation/escalationEvaluater")
 
 
 function buildRiskStats(analyzedList){
@@ -27,11 +27,13 @@ function buildRiskStats(analyzedList){
 
 
 function analyzePackage(dependencies={}, devDependencies={}){
-    const analyzedDeps = analyzeDependencies(dependencies);
-    const analyzedDevDeps = analyzeDependencies(devDependencies);
+    const analyzedDeps = analyzeDependencies(dependencies, "dependency");
+    const analyzedDevDeps = analyzeDependencies(devDependencies, "devDependency");
 
+    
     const allAnalyzedDeps = [...analyzedDeps, ...analyzedDevDeps];
-    const escalation = evaluateEscalation(allAnalyzedDeps);
+    
+    const escalationResult = evaluateEscalation(allAnalyzedDeps)
 
     const dependencyStats = buildRiskStats(analyzedDeps)
     const devDependencyStats = buildRiskStats(analyzedDevDeps)
@@ -46,9 +48,9 @@ function analyzePackage(dependencies={}, devDependencies={}){
     
 
 
-    const totalHigh = dependencies.high + devDependencies.high;
-    const totalMedium = dependencies.medium + devDependencies.medium;
-    const totalLow = dependencies.low + devDependencies.low;
+    // const totalHigh = dependencies.high + devDependencies.high;
+    // const totalMedium = dependencies.medium + devDependencies.medium;
+    // const totalLow = dependencies.low + devDependencies.low;
 
 
     
@@ -57,7 +59,7 @@ function analyzePackage(dependencies={}, devDependencies={}){
         devDependencies: devDependencyStats,
         projectRisk:policyAdjustedRisk,
         policy: policyResult,
-        escalation,
+        escalation: escalationResult,
         riskExplanation
     };
 }
