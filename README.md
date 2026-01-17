@@ -61,7 +61,27 @@ cd dependency-risk-analyzer-backend
 npm install
 npm run dev
 
+## Planned Enhancements
+🤖 AI-powered risk explanations
+🔁 GitHub Actions integration
+📊 Dashboard / UI visualization
+🧪 Unit & integration tests
+🌐 Public API documentation (Swagger)
+
+## Why This Project Matters 🧠
+This project demonstrates:
+Backend system design
+Security-first thinking
+Rule-based decision engines
+Scalable architecture
+Real-world DevSecOps awareness
+Not a toy project. Built with production intent.
 
 ## Usage
 - Upload a project dependency file to detect security risks  
 
+
+👤 Author
+
+Abhinav Anand
+Full-Stack Developer | Security-Focused Engineer
