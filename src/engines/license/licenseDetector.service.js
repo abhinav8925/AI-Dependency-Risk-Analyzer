@@ -1,14 +1,22 @@
+const MOCK_LICENSE_MAP = {
+    react: "MIT",
+    express: "MIT",
+    lodash: "MIT",
+
+    "some-gpl-lib": "GPL-3.0",
+    "unknown-lib": "UNKNOWN"
+
+}
+
 function detectLicense(packageName){
-    const mockLicense = {
-        react: "MIT",
-        express: "MIT",
-        lodash: "MIT",
+    
+    if(!packageName)    return "UNKNOWN";
 
-        "some-gpl-lib": "GPL-3.0",
-        "unknown-lib": "UNKNOWN"
-    };
+    const name = String(packageName).toLowerCase();
+    const license = MOCK_LICENSE_MAP[name] || "UNKNOWN";
 
-    return mockLicense[packageName] || "UNKNOWN";
+    return String(license).toUpperCase();
+
 }
 
 module.exports = {detectLicense};

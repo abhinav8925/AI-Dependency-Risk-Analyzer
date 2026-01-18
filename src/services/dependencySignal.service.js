@@ -1,16 +1,15 @@
 function generateSignals(dep){
-
-    // console.log("SIGNAL SERVICE HIT →", dep);
- 
-
-
     const signals = [];
-    if(dep.version.includes ("alpha") || dep.version.includes("beta"))
+    const name = typeof dep?.name === "string" ?dep.name: "";
+    const version = typeof dep?.version === "string"?dep.version.toLowerCase(): "";
+    const riskLevel = dep?.riskLevel;
+
+    if(version.includes ("alpha") || version.includes("beta"))
         signals.push("Unstable pre-release version");
-    if(dep.name.length <=3)
-        signals.push("Short package name (possible typo-squat)");
-    if(dep.riskLevel === "high")
-            signals.push("High severity based on versioning")
+    if(name.length > 0 && name.length <= 3)
+        signals.push("Very short package name (possible typo-squatting risk)");
+    if(riskLevel === "high")
+            signals.push("High overall risk based on vulnerability and version analysis.")
     
     return signals;
 }

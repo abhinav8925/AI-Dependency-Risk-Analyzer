@@ -1,6 +1,6 @@
-const generateSignals = require("../services/dependencySignal.service")
+// const generateSignals = require("../services/dependencySignal.service")
 const {findVulnerabilities} = require("../services/vulnerability.service");
-const {overrideRiskByVulnerability} = require("../utils/riskEvaluator");
+// const {overrideRiskByVulnerability} = require("../utils/riskEvaluator");
 const {detectLicense} = require("../engines/license/licenseDetector.service");
 const {evaluateLicenseRisk} = require("../engines/license/licenseRisk.engine");
 
@@ -8,22 +8,23 @@ const {evaluateLicenseRisk} = require("../engines/license/licenseRisk.engine");
 
 function analyzeDependencies(dependencies={}, dependencyType="dependency"){
 
-    
+    if(typeof dependencies !== "object" || dependencies === null)  return [];
+
     const analyzedDependencies = [];
 
-    for(const [name, version] of Object.entries(dependencies)){
+    for(const [rawName, rawVersion] of Object.entries(dependencies)){
+        const name = String(rawName).toLowerCase();
+        const version = typeof rawVersion === "string" ? rawVersion: "";
         let baseRiskLevel = "low";
-        const license = detectLicense(name);
-        const {licenseRisk, reason} = evaluateLicenseRisk(license);
-        if(version.includes("^") || version.includes("~")){
-            baseRiskLevel = "medium";
-        }
+
         if(version==="*" || version === "latest")
                 baseRiskLevel = "high";
-
-
+        else if(version.includes("^") || version.includes("~")){
+            baseRiskLevel = "medium";
+        }
         
-        
+        const license = detectLicense(name);
+        const {licenseRisk, reason} = evaluateLicenseRisk(license);        
         
         const vulnerabilities = findVulnerabilities(name, version);
         let finalRiskLevel = baseRiskLevel;
@@ -36,21 +37,27 @@ function analyzeDependencies(dependencies={}, dependencyType="dependency"){
             else if(hasMedium && finalRiskLevel === "low") finalRiskLevel = "medium";
         }
 
-        let riskScore =1;
+        // let riskScore =1;
 
-        if(finalRiskLevel === "medium") riskScore =5;
-        if(finalRiskLevel === "high") riskScore = 10;
-    
-        const signals = generateSignals({
-            name, version, riskLevel:finalRiskLevel
-        });
+        // if(finalRiskLevel === "medium") riskScore =5;
+        // if(finalRiskLevel === "high") riskScore = 10;
+        
+        const riskScoreMap = {
+            low: 1,
+            medium: 5,
+            high: 10
+        }
+
+        // const signals = generateSignals({
+        //     name, version, riskLevel:finalRiskLevel
+        // });
         
         analyzedDependencies.push({
             name, 
             version,
             dependencyType,
             riskLevel:finalRiskLevel,
-            riskScore,
+            riskScore: riskScoreMap[finalRiskLevel],
             // signals,
             // vulnerabilities
             vulnerable: vulnerabilities.length>0,

@@ -62,9 +62,9 @@ const escalationRules  = [
     {
         name: "HIGH_RISK_SCORE",
         condition: (dep) =>
-            dep.riskScore >= 8,
+            dep.riskScore >= 8 && dep.dependencyType === "dependency",
         action: ESCALATION_ACTIONS.WARN,
-        reason: "Dependency has a high aggregated risk score"
+        reason: "High aggregated risk score in production dependency."
     },
 ];
 
