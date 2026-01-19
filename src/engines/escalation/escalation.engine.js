@@ -79,3 +79,57 @@
 
 
 // not gonna use this file at all
+
+const escalationRules = require("./escalationrules");
+const {ESCALATION_ACTIONS} = require("./escalation.constants");
+
+function evaluateEscalation(dependencies = []){
+    let projectDecision = ESCALATION_ACTIONS.ALLOW;
+    const triggeredDependencies = [];
+
+    const sortedRules = [...escalationRules].sort((a,b) => (b.priority || 0) - (a.priority || 0));
+
+    for(const dep of dependencies){
+        let depFinalAction = ESCALATION_ACTIONS.ALLOW;
+        const depTriggeredRules = [];
+
+        for(const rule of sortedRules){
+            if(rule.condition(dep)){
+                depTriggeredRules.push({
+                    rule: rule.name,
+                    action: rule.action,
+                    reason: rule.reason
+                });
+
+            if(rule.action === ESCALATION_ACTIONS.BLOCK){
+                depFinalAction = ESCALATION_ACTIONS.BLOCK;
+                break;
+            }
+
+            if(rule.action === ESCALATION_ACTIONS.WARN && depFinalAction !== ESCALATION_ACTIONS.BLOCK){
+                depFinalAction = ESCALATION_ACTIONS.WARN;
+            }
+        }
+     }
+
+     if(depFinalAction !== ESCALATION_ACTIONS.ALLOW){
+        triggeredDependencies.push({
+            dependency: dep.name,
+            dependencyType: dep.dependencyType,
+            finalAction: depFinalAction,
+            triggeredRules: depTriggeredRules
+        });
+     }
+
+     if(depFinalAction === ESCALATION_ACTIONS.BLOCK){
+        projectDecision = ESCALATION_ACTIONS.BLOCK;
+     }else if(depFinalAction === ESCALATION_ACTIONS.WARN && projectDecision !== ESCALATION_ACTIONS.BLOCK){
+        projectDecision = ESCALATION_ACTIONS.WARN;
+     }
+}
+    return {
+        decision: projectDecision,
+        triggeredDependencies
+    }
+}
+module.exports = {evaluateEscalation}

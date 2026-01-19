@@ -5,6 +5,7 @@ const applyRiskPolicies =require("./riskPolicy.service");
 // const calculateProjectSeverity = require ("../utils/projectSeverity")
 const {evaluateProjectPolicy} = require("./policyEngine.service");
 const {evaluateEscalation} = require("../engines/escalation/escalationEvaluater")
+const {evaluatePolicy} = require("../policies/policy.engine")
 
 
 function buildRiskStats(analyzedList){
@@ -34,19 +35,19 @@ function analyzePackage(dependencies={}, devDependencies={}){
     const allAnalyzedDeps = [...analyzedDeps, ...analyzedDevDeps];
     
     const escalationResult = evaluateEscalation(allAnalyzedDeps)
+    const policyResult = evaluatePolicy(escalationResult.triggeredDependencies);
 
     const dependencyStats = buildRiskStats(analyzedDeps)
     const devDependencyStats = buildRiskStats(analyzedDevDeps)
 
     const projectRisk = calculateProjectRisk(dependencyStats,devDependencyStats);
     const policyAdjustedRisk = applyRiskPolicies(projectRisk);
-    const policyResult = evaluateProjectPolicy(allAnalyzedDeps);
 
 
    
     const riskExplanation = generateRiskExplanation(policyAdjustedRisk);
     
-
+    const finalDecision = policyResult.finalAction === "BLOCK" ? "BLOCK" :policyResult.finalAction === "WARN" ? "WARN":escalationResult.decision;
 
     // const totalHigh = dependencies.high + devDependencies.high;
     // const totalMedium = dependencies.medium + devDependencies.medium;
@@ -60,6 +61,7 @@ function analyzePackage(dependencies={}, devDependencies={}){
         projectRisk:policyAdjustedRisk,
         policy: policyResult,
         escalation: escalationResult,
+        finalDecision,
         riskExplanation
     };
 }
