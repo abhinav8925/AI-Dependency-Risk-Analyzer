@@ -15,9 +15,9 @@
 // }
 
 const ESCALATION_ACTIONS = {
-    ALLOW: "allow",
-    WARN: "warn",
-    BLOCK: "block"
+    ALLOW: "ALLOW",
+    WARN: "WARN",
+    BLOCK: "BLOCK"
 }
 
 module.exports = {ESCALATION_ACTIONS}

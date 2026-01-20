@@ -6,7 +6,7 @@ function evaluatePolicy(escalationResults, policy=DEFAULT_POLICY){
 
     if(!escalationResults || !Array.isArray(escalationResults.triggeredDependencies)){
         return{
-            finalAction,
+            // finalAction,
             violations,
             summary: {blocked: 0, warnings: 0}
         };
@@ -34,7 +34,7 @@ function evaluatePolicy(escalationResults, policy=DEFAULT_POLICY){
     
 
     return {
-        finalAction,
+        // finalAction,
         violations,
         summary:{
             blocked: violations.filter(v=>v.action === "BLOCK").length,

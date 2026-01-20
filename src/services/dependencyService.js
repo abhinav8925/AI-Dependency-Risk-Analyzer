@@ -1,11 +1,15 @@
 const generateRiskExplanation = require("./riskExplanation.service");
 const analyzeDependencies = require("../utils/dependencyAnalyzer");
 const { calculateProjectRisk } = require("./projectRisk.service");
-const applyRiskPolicies =require("./riskPolicy.service");
+
+// const applyRiskPolicies =require("./riskPolicy.service");
 // const calculateProjectSeverity = require ("../utils/projectSeverity")
-const {evaluateProjectPolicy} = require("./policyEngine.service");
-const {evaluateEscalation} = require("../engines/escalation/escalationEvaluater")
-const {evaluatePolicy} = require("../policies/policy.engine")
+
+// const {evaluateProjectPolicy} = require("./policyEngine.service");
+
+// const {evaluateEscalation} = require("../engines/escalation/escalationEvaluater")
+
+// const {evaluatePolicy} = require("../policies/policy.engine")
 
 
 function buildRiskStats(analyzedList){
@@ -34,20 +38,20 @@ function analyzePackage(dependencies={}, devDependencies={}){
     
     const allAnalyzedDeps = [...analyzedDeps, ...analyzedDevDeps];
     
-    const escalationResult = evaluateEscalation(allAnalyzedDeps)
-    const policyResult = evaluatePolicy(escalationResult.triggeredDependencies);
+    // const escalationResult = evaluateEscalation(allAnalyzedDeps)
+    // const policyResult = evaluatePolicy(escalationResult.triggeredDependencies);
 
     const dependencyStats = buildRiskStats(analyzedDeps)
     const devDependencyStats = buildRiskStats(analyzedDevDeps)
 
     const projectRisk = calculateProjectRisk(dependencyStats,devDependencyStats);
-    const policyAdjustedRisk = applyRiskPolicies(projectRisk);
+    // const policyAdjustedRisk = applyRiskPolicies(projectRisk);
 
 
    
-    const riskExplanation = generateRiskExplanation(policyAdjustedRisk);
+    const riskExplanation = generateRiskExplanation(projectRisk);
     
-    const finalDecision = policyResult.finalAction === "BLOCK" ? "BLOCK" :policyResult.finalAction === "WARN" ? "WARN":escalationResult.decision;
+    // const finalDecision = policyResult.finalAction === "BLOCK" ? "BLOCK" :policyResult.finalAction === "WARN" ? "WARN":escalationResult.decision;
 
     // const totalHigh = dependencies.high + devDependencies.high;
     // const totalMedium = dependencies.medium + devDependencies.medium;
@@ -58,10 +62,10 @@ function analyzePackage(dependencies={}, devDependencies={}){
     return {
         dependencies: dependencyStats,
         devDependencies: devDependencyStats,
-        projectRisk:policyAdjustedRisk,
-        policy: policyResult,
-        escalation: escalationResult,
-        finalDecision,
+        projectRisk,
+        // policy: policyResult,
+        // escalation: escalationResult,
+        // finalDecision,
         riskExplanation
     };
 }

@@ -418,9 +418,10 @@ const fs = require("fs");
 const { version } = require("os");
 const AppError = require("./src/utils/apiError");
 const {successResponse} = require("./src/utils/response");
-const analyzePackage = require("./src/services/dependencyService");
+// const analyzePackage = require("./src/services/dependencyService");
 const validateUpload = require("./src/middlewares/validateUpload")
 const vulnerabilityDB = require("./src/data/vulnerabilityDB")
+const {runAnalysis} = require("../dependency-risk-analyzer-backend/src/core/analysis.pipeline")
 
 const app = express();
 const PORT = 3000;
@@ -456,7 +457,7 @@ const upload = multer({
 
 
 
-app.post("/analyze", upload.single("file"), (req, res, next) => {
+app.post("/analyze", upload.single("file"), async(req, res, next) => {
     const startTime = Date.now();
     try {
         if (!req.file) {
@@ -499,17 +500,19 @@ app.post("/analyze", upload.single("file"), (req, res, next) => {
             );
         }
         
-        const result = analyzePackage(
-            fileData.dependencies,
-            fileData.devDependencies
-        );
+        // const result = analyzePackage(
+        //     fileData.dependencies,
+        //     fileData.devDependencies
+        // );
+
+        const result = await runAnalysis(fileData)
 
         
 
-        // return res.status(200).json({
-        //     success: true,
-        //     data: result
-        // });
+        return res.status(200).json({
+            success: true,
+            data: result
+        });
         return successResponse(
             res,
             "Package analyzed successfully",
