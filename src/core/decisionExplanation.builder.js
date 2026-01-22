@@ -16,7 +16,7 @@ function buildDecisionExplanation({
 
     if(decision === FINAL_DECISION.BLOCK){
         const blockedDeps = escalation.triggeredDependencies.filter(dep =>dep.finalAction === "BLOCK");
-        explanation.primaryReason = "One or more production dependencies contain high severity securoty vulnerabilities.";
+        explanation.primaryReason = "One or more production dependencies contain high severity security vulnerabilities.";
         blockedDeps.forEach(dep => {
             explanation.blockedDependencies.push(dep.dependency);
             const highVulnRule = dep.triggeredRules.find(rule => rule.action === "BLOCK");
