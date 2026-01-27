@@ -21,7 +21,7 @@ function generateDecisionExplanationV1(finalResult){
     let primaryReason = "No critical risks detected.";
 
     if(decision === "BLOCK"){
-        primaryReason = "One or more production dependencies contain high severity security vulnerablities."
+        primaryReason = "One or more production dependencies contain high severity security vulnerabilities."
     }else if(decision === "WARN")
             primaryReason = "Potential risk were detected that require attention but do not block usage."
         

@@ -410,7 +410,7 @@
     
 //     }
 // })
-
+require("dotenv").config();
 const http = require("http");
 const multer = require('multer');
 const express = require('express')
@@ -430,6 +430,8 @@ app.use(express.json());
 if (!fs.existsSync("uploads")) {
     fs.mkdirSync("uploads");
 }
+
+// console.log(process.env.OPENAI_API_KEY);
 const storage = multer.diskStorage({
     destination: "uploads/",
     filename: (req, file, cb) =>{
