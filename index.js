@@ -455,7 +455,22 @@ const upload = multer({
 });
 
 
-
+app.get("/llm-test", async(req,res)=>{
+    try{
+        const {callLLM} = require("./src/llm/llm.client");
+        const response = await callLLM("Explain what a software dependency is:");
+        res.json({
+            success:true,
+            response
+        });
+    }catch(error){
+        console.log("LLM TEST ERROR:", error);       
+        res.status(500).json({
+            success:false,
+            error:error.message
+        });
+    }
+});
 
 
 

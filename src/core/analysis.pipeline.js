@@ -6,14 +6,16 @@ const { generateDecisionExplanationV2 } = require("../explanations/decisionExpla
 const { reject } = require("lodash");
 
 
-function withTimeout(promise, ms=4000){
-    return Promise.race([
-        promise, 
-        new Promise((_,reject)=>
-        setTimeout(() => reject(new Error("LLM timeout")),ms)
-    )
-    ]);
-}
+// function withTimeout(promise, ms=4000){
+//     return Promise.race([
+//         promise, 
+//         new Promise((_,reject)=>
+//         setTimeout(() => reject(new Error("LLM timeout")),ms)
+//     )
+//     ]);
+// }
+
+
 async function runAnalysis(packageJson){
     const analysis = await analyzePackage(packageJson.dependencies, packageJson.devDependencies);
     const allDependencies = [
@@ -25,8 +27,14 @@ async function runAnalysis(packageJson){
 
 
     const finalResult = buildFinalDecision({analysis, escalation, policy});
-    finalResult.decisionExplanationV2=await withTimeout(generateDecisionExplanationV2(finalResult));
+    try{
+        finalResult.decisionExplanationV2=await Promise.race([generateDecisionExplanationV2(finalResult),new  Promise((_,reject)=> setTimeout(()=> reject(new Error("LLM Timeout")),12000))]);
 
+    }catch(err){
+        console.warn("LLM skipped:",err.message);
+        finalResult.decisionExplanationV2=null;
+    }
+    
     return finalResult;
     // return buildFinalDecision({
     //     analysis,
