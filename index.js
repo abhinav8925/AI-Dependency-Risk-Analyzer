@@ -410,6 +410,15 @@
     
 //     }
 // })
+
+process.on("UncaughtException", (err) => {
+    console.error("UNCAUGHT EXCEPTION:",err);
+});
+
+process.on("unhandledRejection",(reason)=>{
+    console.log(("UNHANDLED PROMISE REJECTION: ", reason));
+    
+})
 require("dotenv").config();
 const http = require("http");
 const multer = require('multer');
@@ -455,27 +464,36 @@ const upload = multer({
 });
 
 
-app.get("/llm-test", async(req,res)=>{
-    try{
-        const {callLLM} = require("./src/llm/llm.client");
-        const response = await callLLM("Explain what a software dependency is:");
-        res.json({
-            success:true,
-            response
-        });
-    }catch(error){
-        console.log("LLM TEST ERROR:", error);       
-        res.status(500).json({
-            success:false,
-            error:error.message
-        });
-    }
-});
+// app.get("/llm-test", async(req,res)=>{
+//     try{
+//         const {callLLM} = require("./src/llm/llm.client");
+//         const response = await callLLM("Explain what a software dependency is:");
+//         res.json({
+//             success:true,
+//             response
+//         });
+//     }catch(error){
+//         console.log("LLM TEST ERROR:", error);       
+//         res.status(500).json({
+//             success:false,
+//             error:error.message
+//         });
+//     }
+// });
+// const explainRoute = require("./src/routes/explain.route");
+// app.use("/explain",explainRoute);
+const crypto = require("crypto");
+const {saveAnalysis} = require("./src/store/analysis.store");
+
+const {getAnalysis} = require("./src/store/analysis.store");
+const {generateDecisionExplanationV2} = require("./src/explanations/decisionExplanation.v2")
+
 
 
 
 app.post("/analyze", upload.single("file"), async(req, res, next) => {
     const startTime = Date.now();
+    
     try {
         if (!req.file) {
             throw new AppError(
@@ -484,66 +502,83 @@ app.post("/analyze", upload.single("file"), async(req, res, next) => {
                 "FILE_MISSING"
             );
         }
-
-       
-        // const filePath = req.file.path;
+        
         const rawData = fs.readFileSync(req.file.path, "utf-8").trim();
         if(!rawData){
-            throw new AppError(
-                "No dependencies found in package.json",
-                422,
-                "NO_DEPENDENCIES"
-            );
+            return res.status(422).json({
+                success:false,
+                error: "No dependencies found in package.json"
+            });
         }
         let fileData;
         try{
-            fileData = JSON.parse(fs.readFileSync(req.file.path, "utf-8"));
+            fileData = JSON.parse(rawData)
         }catch(err){
-            throw new AppError(
-                "Invalid JSON format",
-                400,
-                "INVALID_JSON"
-            );
+            return res.status(400).json({
+                success: false,
+                error: "Invalid JSON format"
+            });
         }
         // const fileData = JSON.parse(fs.readFileSync(filePath, "utf-8"));
         const hasDeps = fileData.dependencies && Object.keys(fileData.dependencies).length > 0;
         const hasDevDeps = fileData.devDependencies && Object.keys(fileData.devDependencies).length > 0;
         
         if(!hasDeps && !hasDevDeps){
-            throw new AppError(
-                "No dependencies found in package.json",
-                422,
-                "NO_DEPENDENCIES"
-            );
+            return res.status(422).json({
+                success: false,
+                error: "No dependencies found in package.json"
+            });
         }
         
-        // const result = analyzePackage(
-        //     fileData.dependencies,
-        //     fileData.devDependencies
-        // );
-
-        const result = await runAnalysis(fileData)
-
+        // console.log("Calling runAnalysis...");
+        const result = await runAnalysis(fileData)    
+        const analysisId = crypto.randomUUID();
+        saveAnalysis(analysisId,result)
+        console.log("Fetching analysis ID:", analysisId);
         
-
         return res.status(200).json({
             success: true,
-            data: result
+            // data: result,
+            analysisId,
+            finalDecision: result.finalDecision,
+            summary: result.summary,
+            message: "Analysis completed. Use /explain/{analysisId} for AI explanation",
+            meta:{
+                processingTimeMs:Date.now()-startTime
+            }
         });
-        return successResponse(
-            res,
-            "Package analyzed successfully",
-             result,
-             200,
-             startTime
-        );
     } catch (error) {
-        next(error);
+        // console.error("Analyze crashed:", error);
+        // return res.status(500).json({
+        //     success:false,
+        //     error: error.message || "Internal Server Error"
+        // });
+        next(error)
     }
 });
 
+app.post("/explain/:analysisId",async(req,res)=>{
+    const analysis = getAnalysis(req.params.analysisId);
+    console.log("Analysis stored with ID:", req.params.analysisId)
+    if(!analysis){
+        return res.status(404).json({
+            success:false,
+            message:"Analysis not found or expired."
+        })
+    }
+
+    const explanation = await generateDecisionExplanationV2(analysis)
+    return res.json({
+        success:true,
+        explanation
+    })
+})
+
 
 const errorHandler = require("./src/middlewares/errorHandler");
+const { error } = require("console");
+const { FINAL_DECISION } = require("./src/core/finalDecision.builder");
+const { message } = require("prompt");
 app.use(errorHandler);
 
 app.listen(PORT, ()=>{

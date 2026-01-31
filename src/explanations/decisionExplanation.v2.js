@@ -33,12 +33,12 @@ async function generateDecisionExplanationV2(finalResult) {
 
     Explain the FINAL DECISION of a dependency risk analysis tool.
     Rules:
-    -80-120 words maximum
+    -120-180 words maximum
     -Clear, professional, security-focused
     -No markdown, no bullet points
     -Mention specific blocked dependencies if any
     -Explain WHY the decision was made, not what dependencies are
-
+    -Clear security reasoning
     Analysis Data: ${JSON.stringify(llmInput, null, 2)}
     `;
 

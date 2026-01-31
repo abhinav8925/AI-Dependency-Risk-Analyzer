@@ -2,14 +2,14 @@ const http = require("http");
 
 function callLLM(prompt) {
   return new Promise((resolve, reject) => {
-    // const payload = JSON.stringify({
-    //   model: "llama3",
-    //   prompt,
-    // //   stream: false,
-    //   options: {
-    //     num_predict: 120
-    //   }
-    // });
+    const payload = JSON.stringify({
+      model: "llama3",
+      prompt,
+      stream: false,
+      options: {
+        num_predict: 180
+      }
+    });
 
     const req = http.request(
       {
@@ -19,20 +19,20 @@ function callLLM(prompt) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        //   "Content-Length": Buffer.byteLength(payload)
+          "Content-Length": Buffer.byteLength(payload)
         },
-        timeout: 30000
+        timeout: 60000
       },
       (res) => {
-        let data = "";
+        let body = "";
 
         res.on("data", (chunk) => {
-          data += chunk.toString()
+          body += chunk
         });
 
         res.on("end", () => {
           try {
-            const json=JSON.parse(data);
+            const json=JSON.parse(body);
             
             if (!json.response) {
               return reject(new Error("Empty Ollama response"));
@@ -51,15 +51,7 @@ function callLLM(prompt) {
       reject(new Error("Ollama timeout"));
     });
 
-    req.on("error", reject);
-    req.write(JSON.stringify({
-        model: "llama3",
-        prompt,
-        stream:false,
-        options:{
-            num_predict:120
-        }
-    }));
+    req.write(payload);
     req.end();
   });
 }
