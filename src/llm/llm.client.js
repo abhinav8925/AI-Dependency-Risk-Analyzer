@@ -2,6 +2,8 @@ const http = require("http");
 
 function callLLM(prompt) {
   return new Promise((resolve, reject) => {
+    let finished = false;
+
     const payload = JSON.stringify({
       model: "llama3",
       prompt,
@@ -25,19 +27,18 @@ function callLLM(prompt) {
       },
       (res) => {
         let body = "";
-
         res.on("data", (chunk) => {
           body += chunk
         });
 
         res.on("end", () => {
+          if(finished)  return;
+          finished=true;
           try {
             const json=JSON.parse(body);
-            
             if (!json.response) {
               return reject(new Error("Empty Ollama response"));
             }
-
             resolve(json.response.trim());
           } catch (e) {
             reject(e);
@@ -50,7 +51,11 @@ function callLLM(prompt) {
       req.destroy();
       reject(new Error("Ollama timeout"));
     });
-
+    req.on("error",(err)=>{
+      if(!finished)  return;
+      finished=true;
+      reject(err)
+    })
     req.write(payload);
     req.end();
   });

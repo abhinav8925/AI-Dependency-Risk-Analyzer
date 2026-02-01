@@ -538,21 +538,17 @@ app.post("/analyze", upload.single("file"), async(req, res, next) => {
         
         return res.status(200).json({
             success: true,
-            // data: result,
             analysisId,
             finalDecision: result.finalDecision,
             summary: result.summary,
             message: "Analysis completed. Use /explain/{analysisId} for AI explanation",
+            data: result,          
             meta:{
+            
                 processingTimeMs:Date.now()-startTime
             }
         });
     } catch (error) {
-        // console.error("Analyze crashed:", error);
-        // return res.status(500).json({
-        //     success:false,
-        //     error: error.message || "Internal Server Error"
-        // });
         next(error)
     }
 });
