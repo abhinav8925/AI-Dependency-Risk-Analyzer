@@ -1,4 +1,4 @@
-const { message } = require("prompt");
+// const { message } = require("prompt");
 
 module.exports = {
     HIGH_VULNERABILITY_PRESENT: {

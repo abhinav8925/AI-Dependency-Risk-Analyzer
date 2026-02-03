@@ -1,9 +1,10 @@
+// const { reject } = require("lodash");
 const { callLLM } = require("../llm/llm.client");
+const {withTimeout} = require("../llm/withTimeout");
 const { generateDecisionExplanationV1 } = require("./decisionExplanation.v1");
 
 async function generateDecisionExplanationV2(finalResult) {
-  try {
-   
+     
     const escalation = finalResult.escalation;
     const decision = finalResult.finalDecision.action;
 
@@ -28,30 +29,41 @@ async function generateDecisionExplanationV2(finalResult) {
         totalDependencies:finalResult.summary.totalDependencies
     };
 
-    const prompt = `
-    You are a software supply chain security expert.
+   const prompt = `
+You are a software supply chain security expert.
 
-    Explain the FINAL DECISION of a dependency risk analysis tool.
-    Rules:
-    -120-180 words maximum
-    -Clear, professional, security-focused
-    -No markdown, no bullet points
-    -Mention specific blocked dependencies if any
-    -Explain WHY the decision was made, not what dependencies are
-    -Clear security reasoning
-    Analysis Data: ${JSON.stringify(llmInput, null, 2)}
-    `;
+Explain the FINAL DECISION of a dependency risk analysis tool.
 
-        const response = await callLLM(prompt);
+Rules:
+- 60 to 90 words
+- Clear, professional, security-focused
+- No markdown, no bullet points
+- Mention blocked dependencies if any
+- Explain WHY the decision was made
 
+Analysis:
+Decision: ${decision}
+Risk severity: ${finalResult.summary.riskSeverity}
+Blocked dependencies: ${blockedDeps.join(", ") || "None"}
+Reasons: ${reasons.join("; ")}
+`;
+
+    try{
+        const aiResponse = await withTimeout(callLLM(prompt), 30_000);
         return {
-        version: "v2",
-        explanation: response.trim()
+            version: "v2",
+            explanation: aiResponse.trim(),
+            source: "AI"
         };
-    } catch (error) {
-        console.error("Ollama failed, falling back:", error.message);
-        return generateDecisionExplanationV1(finalResult);
+    }catch(err){
+        return {
+            ...generateDecisionExplanationV1(finalResult),
+            source: "RULE_BASED",
+            note: "AI timed out or unavailable"
+        }
     }
-    }
+}
 
-    module.exports = { generateDecisionExplanationV2 };
+
+
+module.exports = { generateDecisionExplanationV2 };

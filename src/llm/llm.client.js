@@ -1,9 +1,9 @@
 const http = require("http");
+// const { reject } = require("lodash");
+// const { finished } = require("stream");
 
 function callLLM(prompt) {
   return new Promise((resolve, reject) => {
-    let finished = false;
-
     const payload = JSON.stringify({
       model: "llama3",
       prompt,
@@ -23,42 +23,34 @@ function callLLM(prompt) {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(payload)
         },
-        timeout: 60000
+        timeout: 20000
       },
       (res) => {
         let body = "";
-        res.on("data", (chunk) => {
-          body += chunk
-        });
+        res.setEncoding("utf8");
+        res.on("data", (chunk) => {body += chunk});
 
         res.on("end", () => {
-          if(finished)  return;
-          finished=true;
-          try {
-            const json=JSON.parse(body);
-            if (!json.response) {
-              return reject(new Error("Empty Ollama response"));
+            try {
+              const json=JSON.parse(body);
+              if (!json.response) {
+                return reject(new Error("Empty Ollama response"));
+              }
+              resolve(json.response);
+            } catch (e) {
+              reject(e);
             }
-            resolve(json.response.trim());
-          } catch (e) {
-            reject(e);
-          }
-        });
-      }
-    );
-
-    req.on("timeout", () => {
-      req.destroy();
-      reject(new Error("Ollama timeout"));
-    });
-    req.on("error",(err)=>{
-      if(!finished)  return;
-      finished=true;
-      reject(err)
-    })
-    req.write(payload);
-    req.end();
+          });
+      });
+     
+    req.on("timeout", ()=>{
+    req.destroy();
+    reject(new Error("Ollama timeout"));
   });
-}
 
+  req.on("error",reject);
+  req.write(payload);
+  req.end();
+});
+}
 module.exports = { callLLM };

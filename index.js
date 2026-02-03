@@ -2,6 +2,9 @@
     // // console.log(req.method);
     // // console.log(req.url);
     // res.end("Hello AI")
+
+const { Log } = require("ethers");
+
     
     // res.end("Hello world, i am back");
 
@@ -411,36 +414,52 @@
 //     }
 // })
 
-process.on("UncaughtException", (err) => {
-    console.error("UNCAUGHT EXCEPTION:",err);
-});
 
-process.on("unhandledRejection",(reason)=>{
-    console.log(("UNHANDLED PROMISE REJECTION: ", reason));
-    
-})
+
+// app.get("/llm-test", async(req,res)=>{
+//     try{
+//         const {callLLM} = require("./src/llm/llm.client");
+//         const response = await callLLM("Explain what a software dependency is:");
+//         res.json({
+//             success:true,
+//             response
+//         });
+//     }catch(error){
+//         console.log("LLM TEST ERROR:", error);       
+//         res.status(500).json({
+//             success:false,
+//             error:error.message
+//         });
+//     }
+// });
+// const explainRoute = require("./src/routes/explain.route");
+// app.use("/explain",explainRoute)
+// ;
+
+
+const express = require("express");
+const app = express();
+const PORT = process.env.PORT || 4000;
 require("dotenv").config();
 const http = require("http");
 const multer = require('multer');
-const express = require('express')
 const fs = require("fs");
 const { version } = require("os");
 const AppError = require("./src/utils/apiError");
 const {successResponse} = require("./src/utils/response");
-// const analyzePackage = require("./src/services/dependencyService");
+const crypto = require("crypto");
+const {saveAnalysis} = require("./src/store/analysis.store");
+const {getAnalysis} = require("./src/store/analysis.store");
+const {generateDecisionExplanationV2} = require("./src/explanations/decisionExplanation.v2")
+const {saveExplanation} = require("./src/store/analysis.store")
 const validateUpload = require("./src/middlewares/validateUpload")
 const vulnerabilityDB = require("./src/data/vulnerabilityDB")
-const {runAnalysis} = require("../dependency-risk-analyzer-backend/src/core/analysis.pipeline")
+const {runAnalysis} = require("./src/core/analysis.pipeline")
 
-const app = express();
-const PORT = 3000;
-app.use(express.json());
 
 if (!fs.existsSync("uploads")) {
     fs.mkdirSync("uploads");
 }
-
-// console.log(process.env.OPENAI_API_KEY);
 const storage = multer.diskStorage({
     destination: "uploads/",
     filename: (req, file, cb) =>{
@@ -464,32 +483,14 @@ const upload = multer({
 });
 
 
-// app.get("/llm-test", async(req,res)=>{
-//     try{
-//         const {callLLM} = require("./src/llm/llm.client");
-//         const response = await callLLM("Explain what a software dependency is:");
-//         res.json({
-//             success:true,
-//             response
-//         });
-//     }catch(error){
-//         console.log("LLM TEST ERROR:", error);       
-//         res.status(500).json({
-//             success:false,
-//             error:error.message
-//         });
-//     }
-// });
-// const explainRoute = require("./src/routes/explain.route");
-// app.use("/explain",explainRoute);
-const crypto = require("crypto");
-const {saveAnalysis} = require("./src/store/analysis.store");
-
-const {getAnalysis} = require("./src/store/analysis.store");
-const {generateDecisionExplanationV2} = require("./src/explanations/decisionExplanation.v2")
-
-
-
+app.post("/health",(req,res)=>{
+    return res.status(200).json({
+         ok:true,
+         service: "dependency-risk-analyzer",
+         message:"Server is healthy.",
+         time: new Date().toISOString()
+        });
+});
 
 app.post("/analyze", upload.single("file"), async(req, res, next) => {
     const startTime = Date.now();
@@ -542,7 +543,7 @@ app.post("/analyze", upload.single("file"), async(req, res, next) => {
             finalDecision: result.finalDecision,
             summary: result.summary,
             message: "Analysis completed. Use /explain/{analysisId} for AI explanation",
-            data: result,          
+            // data: result,          
             meta:{
             
                 processingTimeMs:Date.now()-startTime
@@ -554,31 +555,47 @@ app.post("/analyze", upload.single("file"), async(req, res, next) => {
 });
 
 app.post("/explain/:analysisId",async(req,res)=>{
-    const analysis = getAnalysis(req.params.analysisId);
-    console.log("Analysis stored with ID:", req.params.analysisId)
-    if(!analysis){
+    const entry = getAnalysis(req.params.analysisId)
+    if(!entry){
         return res.status(404).json({
             success:false,
             message:"Analysis not found or expired."
-        })
+        });
     }
 
-    const explanation = await generateDecisionExplanationV2(analysis)
-    return res.json({
-        success:true,
-        explanation
-    })
-})
+    if(entry.explanation){
+        return res.json({
+            success:true,
+            explanation:entry.explanation,
+            aistatus: entry.explanation.source || "RULE_BASED",
+            cached:true
+        });
+    }
 
+    const explanation = await generateDecisionExplanationV2(entry.data);
+    saveExplanation(req.params.analysisId, explanation);
+    return res.json({
+        success: true,
+        explanation,
+        aistatus: entry.explanation.source || "RULE_BASED",
+        cached:false
+    });   
+});
 
 const errorHandler = require("./src/middlewares/errorHandler");
 const { error } = require("console");
 const { FINAL_DECISION } = require("./src/core/finalDecision.builder");
+const { generateDecisionExplanationV1 } = require("./src/explanations/decisionExplanation.v1");
+const { method } = require("lodash");
 const { message } = require("prompt");
+const exp = require("constants");
+// const { message } = require("prompt");
 app.use(errorHandler);
 
-app.listen(PORT, ()=>{
-    console.log(`Server running on port ${PORT}`);
+
+
+app.listen(PORT,()=>{
+    console.log("Minimal Server running on", PORT);
     
-});
+})
 
