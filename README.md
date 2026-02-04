@@ -1,87 +1,164 @@
-An AI-ready backend service that analyzes project dependencies for security vulnerabilities, license risks, policy violations, and escalation decisions — designed for real-world CI/CD and supply-chain security use cases.
+📦 **AI-Powered Dependency Risk Analyzer**
+An AI-assisted software supply chain security tool that analyzes package.json files, evaluates dependency risks, enforces security policies, and generates human-readable explanations using a local LLM with safe fallback mechanisms.
+This project is designed with production-grade resilience, ensuring security decisions remain deterministic even when AI is slow or unavailable.
 
-## Overview
-Modern software relies heavily on third-party dependencies, which introduces serious supply-chain risks such as:
-High-severity vulnerabilities,
-Risky or unknown licenses,
-Transitive dependency exposure,
-Policy violations in CI/CD pipelines,
-This project analyzes both production and development dependencies and provides a clear allow / warn / block decision using rule-based escalation policies.
+## **Why This Project Exists** 🚀 
+Modern applications rely heavily on third-party dependencies.
+A single vulnerable dependency can compromise the entire system.
+This tool helps by:
+Detecting high-risk dependencies
+Enforcing security escalation policies
+Producing clear explanations for security decisions
+Using AI responsibly, never as a single point of failure
 
-
-
-## Key Features
-
-🔍 Dependency Analysis
-Separates dependencies and devDependencies, 
-Version-based risk detection (^, ~, latest, *), 
-Individual dependency risk scoring
-
-🛡 Vulnerability Engine
-Detects known vulnerabilities per package, 
-Severity classification (LOW / MEDIUM / HIGH), 
-CVSS-style metadata support
-
-📜 License Risk Engine
-Detects common licenses (MIT, Apache, GPL, Unknown), 
-Assigns license risk levels, 
-Flags licenses requiring legal review
-
-📐 Policy Engine
-Project-level policy evaluation, 
-Aggregates dependency risks,
-Calculates overall project severity,
-
-🚨 Escalation Engine (Core Highlight)
-Rule-based ALLOW / WARN / BLOCK decisions,
-Differentiates prod vs dev dependencies,
-Multiple rules per dependency supported,
-Clean, structured escalation output
-
-## Tech Staks
-Node.js
-Express.js
-JavaScript (ES6+)
-Modular service-based architecture
-CI/CD ready (GitHub Actions compatible)
-
-##🎯 Real-World Use Cases
-CI/CD pipeline dependency scanning
-Supply-chain security enforcement
-Pre-merge risk analysis
-Open-source compliance checks
-Security posture reporting
-
-## GitHub & Live Links
- [GitHub]() | [Live]()
-
-## Installation
-git clone  https://github.com/abhinav8925/AI-Dependency-Risk-Analyzer
-cd dependency-risk-analyzer-backend
-npm install
-npm run dev
-
-## Planned Enhancements
-🤖 AI-powered risk explanations
-🔁 GitHub Actions integration
-📊 Dashboard / UI visualization
-🧪 Unit & integration tests
-🌐 Public API documentation (Swagger)
-
-## Why This Project Matters 🧠
-This project demonstrates:
-Backend system design
-Security-first thinking
-Rule-based decision engines
-Scalable architecture
-Real-world DevSecOps awareness
-Not a toy project. Built with production intent.
-
-## Usage
-- Upload a project dependency file to detect security risks  
+## **Key Features** 🧠 
+**🔍 Dependency Risk Analysis**
+Parses dependencies and devDependencies
+Detects known vulnerabilities
+Assigns risk scores and severity levels
 
 
-## Author
+## ** Policy & Escalation Engine 🚨
+**Automatically BLOCKS, WARNS, or ALLOWS dependencies
+Rule-based decision system for deterministic behavior
 
-Abhinav Anand |
-Full-Stack Developer | Security-Focused Engineer
+## ** AI-Generated Security Explanations** 🤖
+Uses local LLM (Ollama + Llama 3)
+Generates concise, professional explanations
+Explains why a decision was made, not just what
+
+## ** Safe AI Fallback (Production-Grade)**🛡️
+If AI takes longer than a defined timeout:
+Automatically falls back to rule-based explanations
+Guarantees no request ever hangs
+Guarantees no AI dependency for security decisions
+
+ ## **Demo Mode (Recruiter Friendly)**🎯
+Allows controlled AI generation for demos
+Proves AI capability without risking instability
+
+## ** System Architecture (High Level)**🏗️
+
+Client (package.json upload)
+        ↓
+Dependency Analyzer
+        ↓
+Risk Scoring Engine
+        ↓
+Policy & Escalation Rules
+        ↓
+Final Decision (BLOCK / WARN / ALLOW)
+        ↓
+┌───────────────┐
+│ AI Explanation│  ← Ollama (Llama 3)
+└───────────────┘
+        ↓ (timeout or error)
+Rule-Based Explanation (Guaranteed)
+
+**🔑 Security decisions never depend on AI availability
+
+ ## **API Endpoints** 📡
+✅ Health Check
+
+POST /health
+Response
+Copy code
+Json
+{
+  "ok": true,
+  "service": "dependency-risk-analyzer",
+  "message": "Server is healthy"
+}
+
+## ** Analyze Dependencies**📦
+
+POST /analyze
+
+**Input**
+Multipart form-data
+Key: file
+Value: package.json
+
+**Response**
+Json
+{
+  "success": true,
+  "analysisId": "uuid",
+  "finalDecision": {
+    "action": "BLOCK"
+  },
+  "summary": {
+    "totalDependencies": 7,
+    "riskSeverity": "HIGH"
+  }
+}
+
+
+🤖 **Get Explanation**
+
+POST /explain/:analysisId
+
+**Optional demo mode:**
+
+POST /explain/:analysisId?mode=demo
+
+AI Response
+
+Json
+{
+  "success": true,
+  "explanation": {
+    "version": "v2",
+    "source": "AI",
+    "explanation": "The final decision was to block..."
+  },
+  "aistatus": "AI"
+}
+
+Fallback Response
+
+Json
+{
+  "success": true,
+  "explanation": {
+    "version": "v1",
+    "source": "RULE_BASED"
+  },
+  "aistatus": "RULE_BASED"
+}
+
+
+## **AI Design Philosophy (Important)** 🧠 
+
+This project follows Responsible AI principles:
+AI is used for explanations only
+Security decisions are always deterministic
+AI failures never break the system
+Timeouts ensure predictable performance
+AI enhances understanding — it never replaces policy enforcement.
+
+ ## **Tech Stack** 🛠️
+Backend: Node.js, Express
+AI: Ollama (Llama 3 – local inference)
+Security Logic: Custom rule & escalation engine
+Storage: In-memory store (extensible to Redis/DB)
+Deployment Ready: Docker (coming next)
+
+🧪 Example Use Case
+Upload a package.json
+System detects high-risk dependency (lodash, minimist)
+Policy engine blocks the dependency
+AI generates a security-focused explanation
+If AI is slow → fallback explanation is returned instantly
+
+## ** Future Enhancements** 🔮
+Docker Compose (API + Ollama)
+CI/CD pipeline
+Persistent storage (Redis / MongoDB)
+SBOM export
+GitHub dependency scanning integration
+
+## ** Author** 🧑‍💻
+Abhinav Anand
+Full-Stack Developer | Security-Focused Backend Engineer
+AI-Driven Systems | Supply Chain Security
