@@ -1,15 +1,18 @@
 const http = require("http");
+const { FINAL_DECISION } = require("../core/finalDecision.builder");
 // const { reject } = require("lodash");
 // const { finished } = require("stream");
 
 function callLLM(prompt) {
+
   return new Promise((resolve, reject) => {
+    let finished = false;
     const payload = JSON.stringify({
       model: "llama3",
       prompt,
       stream: false,
       options: {
-        num_predict: 180
+        num_predict: 90
       }
     });
 
@@ -23,7 +26,7 @@ function callLLM(prompt) {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(payload)
         },
-        timeout: 20000
+        
       },
       (res) => {
         let body = "";
@@ -31,24 +34,35 @@ function callLLM(prompt) {
         res.on("data", (chunk) => {body += chunk});
 
         res.on("end", () => {
+          if(finished) return
+          finished = true;
+
+          console.log("[OLLAMA] Raw response length:", body.length);
+
             try {
               const json=JSON.parse(body);
               if (!json.response) {
                 return reject(new Error("Empty Ollama response"));
               }
-              resolve(json.response);
+              resolve(json.response.trim());
             } catch (e) {
               reject(e);
             }
           });
-      });
-     
-    req.on("timeout", ()=>{
-    req.destroy();
-    reject(new Error("Ollama timeout"));
-  });
+    res.on("close", ()=>{
+      if(!finished){
+        finished = true;
+        reject (new Error("Ollama connection closed early"));
+      }
+    })  
+  });   
+   
 
-  req.on("error",reject);
+  req.on("error",err =>{
+    if(finished) return
+    finished = true;
+    reject(err);
+  });
   req.write(payload);
   req.end();
 });

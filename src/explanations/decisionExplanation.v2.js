@@ -3,67 +3,76 @@ const { callLLM } = require("../llm/llm.client");
 const {withTimeout} = require("../llm/withTimeout");
 const { generateDecisionExplanationV1 } = require("./decisionExplanation.v1");
 
-async function generateDecisionExplanationV2(finalResult) {
-     
+async function generateDecisionExplanationV2(finalResult, options={}) {
+
+    const demoMode = options.demo === true; 
+    console.log("[AI] generatedDecisionExplanationV2 called,",
+         {demoMode,
+         decision: finalResult.finalDecision?.action})
     const escalation = finalResult.escalation;
     const decision = finalResult.finalDecision.action;
 
     const blockedDeps = [];
     const reasons = [];
 
-    if(escalation?.triggeredDependencies?.length){
-        for (const dep of escalation.triggeredDependencies){
+    if(finalResult.escalation?.triggeredDependencies?.length){
+        for (const dep of finalResult.escalation.triggeredDependencies){
             if(dep.finalAction === "BLOCK"){
                 blockedDeps.push(dep.dependency);
-                for(const rule of dep.triggeredRules){
-                    reasons.push(`${dep.dependency}: ${rule.reason}`);
-                }
             }
         }
     }
 
-    const llmInput = {
-        decision,
-        riskSeverity:finalResult.summary.riskSeverity,
-        blockedDependencies: blockedDeps,reasons,
-        totalDependencies:finalResult.summary.totalDependencies
-    };
+    // const llmInput = {
+    //     decision,
+    //     riskSeverity:finalResult.summary.riskSeverity,
+    //     blockedDependencies: blockedDeps,reasons,
+    //     totalDependencies:finalResult.summary.totalDependencies
+    // };
 
    const prompt = `
-You are a software supply chain security expert.
+    You are a software supply chain security expert.
 
-Explain the FINAL DECISION of a dependency risk analysis tool.
+    Explain the FINAL DECISION of a dependency risk analysis tool.
 
-Rules:
-- 60 to 90 words
-- Clear, professional, security-focused
-- No markdown, no bullet points
-- Mention blocked dependencies if any
-- Explain WHY the decision was made
+    Rules:
+    - 60 to 90 words
+    - Clear, professional, security-focused
+    - No markdown, no bullet points
+    - Mention blocked dependencies if any
+    - Explain WHY the decision was made
 
-Analysis:
-Decision: ${decision}
-Risk severity: ${finalResult.summary.riskSeverity}
-Blocked dependencies: ${blockedDeps.join(", ") || "None"}
-Reasons: ${reasons.join("; ")}
-`;
+    Analysis:
+    
+    Risk severity: ${finalResult.summary.riskSeverity}
+    Blocked dependencies: ${blockedDeps.join(", ") || "None"}
+    
+    `;
 
     try{
-        const aiResponse = await withTimeout(callLLM(prompt), 30_000);
+        console.log("[AI] Calling LLM...",{
+            timeoutMs: demoMode ?60000:30000
+        });
+        const response = await withTimeout(callLLM(prompt), {
+            timeoutMs: demoMode ? 60000:30000,
+            // maxTokens: demoMode ? 80:120
+        });
+        console.log("[AI] LLM SUCCESS");
+        
         return {
             version: "v2",
-            explanation: aiResponse.trim(),
+            explanation: response,
             source: "AI"
         };
     }catch(err){
-        return {
-            ...generateDecisionExplanationV1(finalResult),
-            source: "RULE_BASED",
-            note: "AI timed out or unavailable"
-        }
+        console.warn("[AI] AI unavailable, using fallback: ", err.message);
+        // return {
+        //     ...generateDecisionExplanationV1(finalResult),
+        //     source: "RULE_BASED",
+        //     note: err.message
+        // }
+        return generateDecisionExplanationV1(finalResult);
     }
 }
-
-
 
 module.exports = { generateDecisionExplanationV2 };

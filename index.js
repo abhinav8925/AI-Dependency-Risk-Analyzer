@@ -563,22 +563,16 @@ app.post("/explain/:analysisId",async(req,res)=>{
         });
     }
 
-    if(entry.explanation){
-        return res.json({
-            success:true,
-            explanation:entry.explanation,
-            aistatus: entry.explanation.source || "RULE_BASED",
-            cached:true
-        });
-    }
+    const demoMode =  req.query.mode === "demo";
 
-    const explanation = await generateDecisionExplanationV2(entry.data);
+    const explanation = await generateDecisionExplanationV2(entry.data,{demo:demoMode});
     saveExplanation(req.params.analysisId, explanation);
     return res.json({
         success: true,
         explanation,
-        aistatus: entry.explanation.source || "RULE_BASED",
-        cached:false
+        aistatus: explanation.version === "v2" ? "AI" : "RULE_BASED",
+        demoMode
+        // cached:false
     });   
 });
 
