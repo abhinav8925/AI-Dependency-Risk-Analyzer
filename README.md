@@ -1,87 +1,125 @@
-An AI-ready backend service that analyzes project dependencies for security vulnerabilities, license risks, policy violations, and escalation decisions — designed for real-world CI/CD and supply-chain security use cases.
+# 🛡️ AI-Powered Dependency Risk Analyzer
 
-## Overview
-Modern software relies heavily on third-party dependencies, which introduces serious supply-chain risks such as:
-High-severity vulnerabilities,
-Risky or unknown licenses,
-Transitive dependency exposure,
-Policy violations in CI/CD pipelines,
-This project analyzes both production and development dependencies and provides a clear allow / warn / block decision using rule-based escalation policies.
+> **A production-grade software supply chain security analyzer with AI explanations and deterministic fallback logic**
 
+---
 
+## 📌 Overview
 
-## Key Features
+**AI-Powered Dependency Risk Analyzer** is a backend system that analyzes a project’s `package.json` to identify **security, vulnerability, and policy risks** in third-party dependencies.
 
-🔍 Dependency Analysis
-Separates dependencies and devDependencies, 
-Version-based risk detection (^, ~, latest, *), 
-Individual dependency risk scoring
+The system combines:
 
-🛡 Vulnerability Engine
-Detects known vulnerabilities per package, 
-Severity classification (LOW / MEDIUM / HIGH), 
-CVSS-style metadata support
+- **Rule-based deterministic security analysis**
+- **AI-generated security explanations (via LLMs)**
+- **Graceful fallback mechanisms** to ensure reliability when AI is slow or unavailable
 
-📜 License Risk Engine
-Detects common licenses (MIT, Apache, GPL, Unknown), 
-Assigns license risk levels, 
-Flags licenses requiring legal review
+This project is designed with **real-world production constraints** in mind — latency, reliability, and failure handling are first-class citizens.
 
-📐 Policy Engine
-Project-level policy evaluation, 
-Aggregates dependency risks,
-Calculates overall project severity,
+---
 
-🚨 Escalation Engine (Core Highlight)
-Rule-based ALLOW / WARN / BLOCK decisions,
-Differentiates prod vs dev dependencies,
-Multiple rules per dependency supported,
-Clean, structured escalation output
+## 🚀 Key Features
 
-## Tech Staks
-Node.js
-Express.js
-JavaScript (ES6+)
-Modular service-based architecture
-CI/CD ready (GitHub Actions compatible)
+### ✅ Static Dependency Risk Analysis
+- Scans both `dependencies` and `devDependencies`
+- Detects high-risk packages, vulnerable versions, and license issues
 
-##🎯 Real-World Use Cases
-CI/CD pipeline dependency scanning
-Supply-chain security enforcement
-Pre-merge risk analysis
-Open-source compliance checks
-Security posture reporting
+### ✅ Final Risk Decision Engine
+- Produces **BLOCK / WARN / ALLOW** decisions
+- Backed by explicit escalation and policy rules
 
-## GitHub & Live Links
- [GitHub]() | [Live]()
+### ✅ AI-Generated Security Explanations
+- Uses a Large Language Model to explain **why** a decision was made
+- Generates human-readable, security-focused summaries
 
-## Installation
-git clone  https://github.com/abhinav8925/AI-Dependency-Risk-Analyzer
-cd dependency-risk-analyzer-backend
-npm install
-npm run dev
+### ✅ Rule-Based Fallback (Production Safe)
+- Automatically falls back when AI is slow or unavailable
+- **Guarantees zero request failures**
 
-## Planned Enhancements
-🤖 AI-powered risk explanations
-🔁 GitHub Actions integration
-📊 Dashboard / UI visualization
-🧪 Unit & integration tests
-🌐 Public API documentation (Swagger)
+### ✅ Demo Mode for AI Evaluation
+- Optional `demo` mode with extended AI timeouts
+- Useful for interviews and live demonstrations
 
-## Why This Project Matters 🧠
-This project demonstrates:
-Backend system design
-Security-first thinking
-Rule-based decision engines
-Scalable architecture
-Real-world DevSecOps awareness
-Not a toy project. Built with production intent.
+### ✅ Dockerized Backend
+- Fully containerized Node.js backend
+- Environment-driven configuration
 
-## Usage
-- Upload a project dependency file to detect security risks  
+---
 
+## 🧠 Why This Project Is Different
 
-## Author
+Most “AI projects” **break when the AI fails**.
 
-Abhinav Anand |
-Full-Stack Developer | Security-Focused Engineer
+**This one doesn’t.**
+
+### ✔ Real-World Engineering Decisions
+- AI calls are **time-bounded**
+- Fallback logic is **explicit and guaranteed**
+- System always returns a valid response
+- No request ever hangs indefinitely
+
+> This is how AI systems are built in production — not demos.
+
+---
+
+## 🏗️ Architecture (High Level)
+
+Client (Postman / Frontend) | v Node.js API (Express) | +--> Rule-Based Analysis Engine | +--> AI Explanation Engine (LLM) | +--> Timeout / Fallback Handler
+
+---
+
+## 🔌 API Endpoints
+
+### 🔹 Health Check
+POST /health
+
+{
+  "ok": true,
+  "service": "dependency-risk-analyzer",
+  "message": "Server is healthy."
+}
+
+🔹 Analyze Dependencies
+POST /analyze
+
+Input
+Multipart form-data
+
+Upload a package.json file
+{
+  "success": true,
+  "analysisId": "uuid",
+  "finalDecision": {
+    "action": "BLOCK"
+  },
+  "summary": {
+    "totalDependencies": 7,
+    "riskSeverity": "HIGH"
+  }
+}
+
+🔹 Get Explanation (AI + Fallback)
+POST /explain/:analysisId
+
+Demo Mode
+
+POST /explain/:analysisId?mode=demo
+
+{
+  "success": true,
+  "explanation": {
+    "version": "v2",
+    "source": "AI",
+    "explanation": "Human-readable security explanation..."
+  },
+  "aistatus": "AI"
+}
+Fallback response
+{
+  "success": true,
+  "explanation": {
+    "version": "v1",
+    "primaryReason": "High severity vulnerabilities detected."
+  },
+  "aistatus": "RULE_BASED"
+}
