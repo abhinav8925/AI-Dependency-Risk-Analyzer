@@ -1,85 +1,63 @@
-📦 **AI-Powered Dependency Risk Analyzer**
-An AI-assisted software supply chain security tool that analyzes package.json files, evaluates dependency risks, enforces security policies, and generates human-readable explanations using a local LLM with safe fallback mechanisms.
-This project is designed with production-grade resilience, ensuring security decisions remain deterministic even when AI is slow or unavailable.
+🛡️ AI-Powered Dependency Risk Analyzer
+A production-grade software supply chain security analyzer with AI explanations and deterministic fallback logic
+📌 Overview
+AI-Powered Dependency Risk Analyzer is a backend system that analyzes a project’s package.json to identify security, vulnerability, and policy risks in third-party dependencies.
+The system combines:
+Rule-based deterministic security analysis
+AI-generated security explanations (via LLMs)
+Graceful fallback mechanisms to ensure reliability even when AI is slow or unavailable
+This project is designed with real-world production constraints in mind — latency, reliability, and failure handling are first-class citizens.
+🚀 Key Features
+✅ Static Dependency Risk Analysis
+Scans both dependencies and devDependencies
+Detects high-risk packages, vulnerable versions, and license issues
+✅ Final Risk Decision Engine
+Produces a BLOCK / WARN / ALLOW decision
+Backed by explicit escalation and policy rules
+✅ AI-Generated Security Explanations
+Uses a Large Language Model to explain why a decision was made
+Generates human-readable, security-focused summaries
+✅ Rule-Based Fallback (Production Safe)
+If AI takes too long or becomes unavailable, the system automatically falls back to a deterministic explanation
+Guarantees zero request failures
+✅ Demo Mode for AI Evaluation
+Optional demo mode allows extended AI timeouts for showcasing AI responses
+Useful for interviews and demos
+✅ Dockerized Backend
+Fully containerized Node.js backend
+Environment-driven configuration for local and containerized runs
+🧠 Why This Project Is Different
+Most “AI projects” break when the AI fails.
+This one doesn’t.
+✔ Real-World Engineering Decisions
+AI calls are time-bounded
+Fallback logic is explicit and guaranteed
+System always returns a valid response
+No request ever hangs indefinitely
+This is how AI systems are built in production — not in demos.
 
-## Why This Project Exists 🚀 
-Modern applications rely heavily on third-party dependencies.
-A single vulnerable dependency can compromise the entire system.
-This tool helps by:
-Detecting high-risk dependencies
-Enforcing security escalation policies
-Producing clear explanations for security decisions
-Using AI responsibly, never as a single point of failure
-
-## Key Features 🧠 
-**🔍 Dependency Risk Analysis**
-Parses dependencies and devDependencies
-Detects known vulnerabilities
-Assigns risk scores and severity levels
-
-
-##  Policy & Escalation Engine 🚨
-Automatically BLOCKS, WARNS, or ALLOWS dependencies
-Rule-based decision system for deterministic behavior
-
-##  AI-Generated Security Explanations 🤖
-Uses local LLM (Ollama + Llama 3)
-Generates concise, professional explanations
-Explains why a decision was made, not just what
-
-##  Safe AI Fallback (Production-Grade)🛡️
-If AI takes longer than a defined timeout:
-Automatically falls back to rule-based explanations
-Guarantees no request ever hangs
-Guarantees no AI dependency for security decisions
-
- ## Demo Mode (Recruiter Friendly)🎯
-Allows controlled AI generation for demos
-Proves AI capability without risking instability
-
-##  System Architecture (High Level)🏗️
-
-Client (package.json upload)
-        ↓
-Dependency Analyzer
-        ↓
-Risk Scoring Engine
-        ↓
-Policy & Escalation Rules
-        ↓
-Final Decision (BLOCK / WARN / ALLOW)
-        ↓
-┌───────────────┐
-│ AI Explanation│  ← Ollama (Llama 3)
-└───────────────┘
-        ↓ (timeout or error)
-Rule-Based Explanation (Guaranteed)
-
-🔑 Security decisions never depend on AI availability
-
- ## API Endpoints 📡
-✅ Health Check
+🔌 API Endpoints
+🔹 Health Check
+   
 
 POST /health
 Response
-
+   
 Json
 {
   "ok": true,
   "service": "dependency-risk-analyzer",
-  "message": "Server is healthy"
+  "message": "Server is healthy."
 }
-
-## Analyze Dependencies📦
+🔹 Analyze Dependencies
+   
 
 POST /analyze
-
 Input
 Multipart form-data
-Key: file
-Value: package.json
-
+Upload a package.json file
 Response
+   
 Json
 {
   "success": true,
@@ -92,73 +70,85 @@ Json
     "riskSeverity": "HIGH"
   }
 }
-
-
-🤖 Get Explanation
+🔹 Get Explanation (AI + Fallback)
+   
 
 POST /explain/:analysisId
-
-Optional demo mode:
+Optional Demo Mode
+   
 
 POST /explain/:analysisId?mode=demo
-
-AI Response
-
+Response (AI)
+   
 Json
 {
   "success": true,
   "explanation": {
     "version": "v2",
     "source": "AI",
-    "explanation": "The final decision was to block..."
+    "explanation": "Human-readable security explanation..."
   },
   "aistatus": "AI"
 }
-
-Fallback Response
-
+Response (Fallback)
+   
 Json
 {
   "success": true,
   "explanation": {
     "version": "v1",
-    "source": "RULE_BASED"
+    "primaryReason": "High severity vulnerabilities detected."
   },
   "aistatus": "RULE_BASED"
 }
-
-
-## AI Design Philosophy (Important) 🧠 
-
-This project follows Responsible AI principles:
-AI is used for explanations only
-Security decisions are always deterministic
-AI failures never break the system
-Timeouts ensure predictable performance
-AI enhances understanding — it never replaces policy enforcement.
-
- ## Tech Stack 🛠️
-Backend: Node.js, Express
-AI: Ollama (Llama 3 – local inference)
-Security Logic: Custom rule & escalation engine
-Storage: In-memory store (extensible to Redis/DB)
-Deployment Ready: Docker (coming next)
-
-🧪 Example Use Case
-Upload a package.json
-System detects high-risk dependency (lodash, minimist)
-Policy engine blocks the dependency
-AI generates a security-focused explanation
-If AI is slow → fallback explanation is returned instantly
-
-##  Future Enhancements 🔮
-Docker Compose (API + Ollama)
-CI/CD pipeline
-Persistent storage (Redis / MongoDB)
-SBOM export
-GitHub dependency scanning integration
-
-##  Author 🧑‍💻
+⏱️ AI Timeout & Fallback Strategy
+Mode
+AI Timeout
+Behavior
+Normal
+~30 sec
+AI attempt → fallback if slow
+Demo Mode
+~60 sec
+Higher chance of AI response
+✔ Guarantees response
+✔ Prevents API hangs
+✔ Production-safe by design
+🐳 Docker Usage
+Build Image
+   
+Bash
+docker build -t dependency-risk-analyzer .
+Run Container
+   
+Bash
+docker run -p 4000:4000 --env-file .env dependency-risk-analyzer
+Ollama runs on the host and is accessed from Docker via host.docker.internal
+⚙️ Environment Variables
+   
+Env
+PORT=4000
+LLM_PROVIDER=ollama
+OLLAMA_HOST=host.docker.internal
+OLLAMA_PORT=11434
+🧪 Testing
+API tested using Postman
+Handles:
+Invalid JSON
+Missing dependencies
+AI timeouts
+Containerized execution
+🎯 Who This Project Is For
+Recruiters evaluating backend + AI engineering
+Security-focused software teams
+Demonstrating real AI reliability patterns
+Interviews requiring architecture reasoning
+📌 Future Enhancements
+Docker Compose (backend + Ollama)
+Persistent storage (Redis / DB)
+SBOM ingestion
+CVE database integration
+Frontend dashboard
+🙌 Author
 Abhinav Anand
-Full-Stack Developer | Security-Focused Backend Engineer
-AI-Driven Systems | Supply Chain Security
+Full-Stack Developer | AI & Security Enthusiast
