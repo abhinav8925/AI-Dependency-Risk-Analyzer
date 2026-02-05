@@ -63,3 +63,5 @@ Most “AI projects” **break when the AI fails**.
 ---
 
 ## 🏗️ Architecture (High Level)
+
+Client (Postman / Frontend) | v Node.js API (Express) | +--> Rule-Based Analysis Engine | +--> AI Explanation Engine (LLM) | +--> Timeout / Fallback Handler
