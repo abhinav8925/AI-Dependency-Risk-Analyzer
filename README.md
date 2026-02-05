@@ -65,3 +65,61 @@ Most “AI projects” **break when the AI fails**.
 ## 🏗️ Architecture (High Level)
 
 Client (Postman / Frontend) | v Node.js API (Express) | +--> Rule-Based Analysis Engine | +--> AI Explanation Engine (LLM) | +--> Timeout / Fallback Handler
+
+---
+
+## 🔌 API Endpoints
+
+### 🔹 Health Check
+POST /health
+
+{
+  "ok": true,
+  "service": "dependency-risk-analyzer",
+  "message": "Server is healthy."
+}
+
+🔹 Analyze Dependencies
+POST /analyze
+
+Input
+Multipart form-data
+
+Upload a package.json file
+{
+  "success": true,
+  "analysisId": "uuid",
+  "finalDecision": {
+    "action": "BLOCK"
+  },
+  "summary": {
+    "totalDependencies": 7,
+    "riskSeverity": "HIGH"
+  }
+}
+
+🔹 Get Explanation (AI + Fallback)
+POST /explain/:analysisId
+
+Demo Mode
+
+POST /explain/:analysisId?mode=demo
+
+{
+  "success": true,
+  "explanation": {
+    "version": "v2",
+    "source": "AI",
+    "explanation": "Human-readable security explanation..."
+  },
+  "aistatus": "AI"
+}
+Fallback response
+{
+  "success": true,
+  "explanation": {
+    "version": "v1",
+    "primaryReason": "High severity vulnerabilities detected."
+  },
+  "aistatus": "RULE_BASED"
+}
