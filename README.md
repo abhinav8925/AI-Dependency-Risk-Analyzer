@@ -36,6 +36,37 @@ System always returns a valid response
 No request ever hangs indefinitely
 This is how AI systems are built in production — not in demos.
 
+
+Client (Postman / Frontend)
+        |
+        v
+Node.js API (Express)
+        |
+        +--> Rule-Based Analysis Engine
+        |
+        +--> AI Explanation Engine (LLM)
+                 |
+                 +--> Timeout / Fallback Handler
+
+
+
+dependency-risk-analyzer-backend/
+│
+├── src/
+│   ├── core/                # Analysis pipeline & decision builders
+│   ├── services/            # Dependency & risk analysis services
+│   ├── explanations/        # AI & rule-based explanation logic
+│   ├── llm/                 # LLM client, timeout handling
+│   ├── store/               # In-memory analysis storage
+│   ├── middlewares/         # Validation & error handling
+│   └── utils/               # Shared utilities & helpers
+│
+├── uploads/                 # Temporary uploaded package.json files
+├── index.js                 # Application entry point
+├── Dockerfile               # Backend container definition
+├── .env                     # Environment configuration
+└── README.md
+
 🔌 API Endpoints
 🔹 Health Check
    
