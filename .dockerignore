@@ -4,3 +4,5 @@ node_modules
 .gitignore
 uploads
 .DS_STORE
+Dockerfile
+README.md

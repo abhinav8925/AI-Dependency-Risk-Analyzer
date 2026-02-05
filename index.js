@@ -483,7 +483,7 @@ const upload = multer({
 });
 
 
-app.post("/health",(req,res)=>{
+app.get("/health",(req,res)=>{
     return res.status(200).json({
          ok:true,
          service: "dependency-risk-analyzer",
@@ -543,7 +543,7 @@ app.post("/analyze", upload.single("file"), async(req, res, next) => {
             finalDecision: result.finalDecision,
             summary: result.summary,
             message: "Analysis completed. Use /explain/{analysisId} for AI explanation",
-            // data: result,          
+            data: result,          
             meta:{
             
                 processingTimeMs:Date.now()-startTime
@@ -581,7 +581,7 @@ const { error } = require("console");
 const { FINAL_DECISION } = require("./src/core/finalDecision.builder");
 const { generateDecisionExplanationV1 } = require("./src/explanations/decisionExplanation.v1");
 const { method } = require("lodash");
-const { message } = require("prompt");
+// const { message } = require("prompt");
 const exp = require("constants");
 // const { message } = require("prompt");
 app.use(errorHandler);

@@ -5,6 +5,10 @@ const { FINAL_DECISION } = require("../core/finalDecision.builder");
 
 function callLLM(prompt) {
 
+  if(process.env.DISABLE_AI === "true"){
+    throw new Error("AI disabled in container environment.")
+  }
+
   return new Promise((resolve, reject) => {
     let finished = false;
     const payload = JSON.stringify({
@@ -12,13 +16,14 @@ function callLLM(prompt) {
       prompt,
       stream: false,
       options: {
-        num_predict: 90
+        num_predict: 60
       }
     });
 
     const req = http.request(
       {
-        hostname: "127.0.0.1",
+        // hostname: "127.0.0.1",
+        hostname: process.env.OLLAMA_HOST || "host.docker.internal",
         port: 11434,
         path: "/api/generate",
         method: "POST",

@@ -51,10 +51,10 @@ async function generateDecisionExplanationV2(finalResult, options={}) {
 
     try{
         console.log("[AI] Calling LLM...",{
-            timeoutMs: demoMode ?60000:30000
+            timeoutMs: demoMode ?75000:30000
         });
         const response = await withTimeout(callLLM(prompt), {
-            timeoutMs: demoMode ? 60000:30000,
+            timeoutMs: demoMode ? 75000:30000,
             // maxTokens: demoMode ? 80:120
         });
         console.log("[AI] LLM SUCCESS");
