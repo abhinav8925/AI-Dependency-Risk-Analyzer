@@ -6,7 +6,7 @@ const { FINAL_DECISION } = require("../core/finalDecision.builder");
 function callLLM(prompt) {
 
   if(process.env.DISABLE_AI === "true"){
-    throw new Error("AI disabled in container environment.")
+    return Promise.reject(new Error("AI_DISABLED"));
   }
 
   return new Promise((resolve, reject) => {
@@ -23,14 +23,15 @@ function callLLM(prompt) {
     const req = http.request(
       {
         // hostname: "127.0.0.1",
-        hostname: process.env.OLLAMA_HOST || "host.docker.internal",
-        port: 11434,
+        hostname: process.env.OLLAMA_HOST || (process.env.NODE_DEV === "production" ? "ollama":"127.0.0.1"),
+        port: Number(process.env.OLLAMA_PORT) || 11434,
         path: "/api/generate",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(payload)
         },
+        timeout: 25000,
         
       },
       (res) => {
@@ -66,7 +67,9 @@ function callLLM(prompt) {
   req.on("error",err =>{
     if(finished) return
     finished = true;
-    reject(err);
+    req.destroy();
+    reject(new Error("OLLAMA_TIMEOUT"))
+    // reject(err);
   });
   req.write(payload);
   req.end();
