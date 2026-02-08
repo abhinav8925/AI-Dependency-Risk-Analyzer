@@ -11,8 +11,10 @@ function callLLM(prompt) {
 
   return new Promise((resolve, reject) => {
     let finished = false;
+
+    const host = process.env.OLLAMA_HOST || (process.env.NODE_ENV === "production" ? "ollama" : "127.0.0.1");
     const payload = JSON.stringify({
-      model: "llama3",
+      model: "llama3:latest",
       prompt,
       stream: false,
       options: {
@@ -22,8 +24,7 @@ function callLLM(prompt) {
 
     const req = http.request(
       {
-        // hostname: "127.0.0.1",
-        hostname: process.env.OLLAMA_HOST || (process.env.NODE_DEV === "production" ? "ollama":"127.0.0.1"),
+        hostname: host,
         port: Number(process.env.OLLAMA_PORT) || 11434,
         path: "/api/generate",
         method: "POST",
@@ -67,9 +68,9 @@ function callLLM(prompt) {
   req.on("error",err =>{
     if(finished) return
     finished = true;
-    req.destroy();
-    reject(new Error("OLLAMA_TIMEOUT"))
-    // reject(err);
+    // req.destroy();
+    // reject(new Error("OLLAMA_TIMEOUT"))
+    reject(err);
   });
   req.write(payload);
   req.end();
