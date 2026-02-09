@@ -14,11 +14,13 @@ function callLLM(prompt) {
 
     const host = process.env.OLLAMA_HOST || (process.env.NODE_ENV === "production" ? "ollama" : "127.0.0.1");
     const payload = JSON.stringify({
-      model: "llama3:latest",
+      // model: "llama3:latest",
+      model:process.env.OLLAMA_MODEL || "phi3:mini",
       prompt,
       stream: false,
       options: {
-        num_predict: 60
+        num_predict: 80,
+        temperature: 0.2
       }
     });
 
