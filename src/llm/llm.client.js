@@ -1,7 +1,5 @@
 const http = require("http");
 const { FINAL_DECISION } = require("../core/finalDecision.builder");
-// const { reject } = require("lodash");
-// const { finished } = require("stream");
 
 function callLLM(prompt) {
 
@@ -9,71 +7,64 @@ function callLLM(prompt) {
     return Promise.reject(new Error("AI_DISABLED"));
   }
 
-  return new Promise((resolve, reject) => {
-    let finished = false;
+  const isDocker = process.env.RUNNING_IN_DOCKER === "true";
+  const host=isDocker ? "host.docker.internal" :  "127.0.0.1";
+  const port=Number(process.env.OLLAMA_PORT) || 11434;
 
-    const host = process.env.OLLAMA_HOST || (process.env.NODE_ENV === "production" ? "ollama" : "127.0.0.1");
+  
+
+
+  return new Promise((resolve, reject) => {
+  
+    let body="";
     const payload = JSON.stringify({
-      // model: "llama3:latest",
-      model:process.env.OLLAMA_MODEL || "phi3:mini",
+      model: "llama3",
       prompt,
       stream: false,
       options: {
-        num_predict: 80,
-        temperature: 0.2
+        num_predict: 120,
+        temperature: 0.4
       }
-    });
-
+    });  
     const req = http.request(
       {
         hostname: host,
-        port: Number(process.env.OLLAMA_PORT) || 11434,
+        port,
         path: "/api/generate",
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(payload)
         },
-        timeout: 25000,
-        
+        timeout: 30000
       },
       (res) => {
-        let body = "";
+        
         res.setEncoding("utf8");
         res.on("data", (chunk) => {body += chunk});
 
         res.on("end", () => {
-          if(finished) return
-          finished = true;
-
-          console.log("[OLLAMA] Raw response length:", body.length);
-
-            try {
-              const json=JSON.parse(body);
-              if (!json.response) {
-                return reject(new Error("Empty Ollama response"));
+          try {
+              const json = JSON.parse(body);
+              if(!json.response){
+                return reject(new Error ("EMPTY_LLM_RESPONSE"));
               }
               resolve(json.response.trim());
             } catch (e) {
               reject(e);
             }
           });
-    res.on("close", ()=>{
-      if(!finished){
-        finished = true;
-        reject (new Error("Ollama connection closed early"));
-      }
-    })  
-  });   
+        });
+    
+  req.on("timeout",()=>{
+    // if(finished)  return;
+    // finished=true;
+    req.destroy();
+    reject(new Error ("LLM_TIMEOUT"))
+  })
    
 
-  req.on("error",err =>{
-    if(finished) return
-    finished = true;
-    // req.destroy();
-    // reject(new Error("OLLAMA_TIMEOUT"))
-    reject(err);
-  });
+  req.on("error",reject);
   req.write(payload);
   req.end();
 });
