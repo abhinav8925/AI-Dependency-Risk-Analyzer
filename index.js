@@ -485,7 +485,7 @@ const upload = multer({
 });
 
 
-app.post("/health",(req,res)=>{
+app.post("/healthhhhhhhhhhhh",(req,res)=>{
     return res.status(200).json({
          ok:true,
          service: "dependency-risk-analyzer",
