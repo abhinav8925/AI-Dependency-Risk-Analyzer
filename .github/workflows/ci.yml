@@ -32,5 +32,5 @@ jobs:
     - name: Health Check
       run: curl -X POST -f  http://localhost:4000/health
 
-    # - name: Build docker image
-    #   run: docker build -t dependency-risk-analyzer .
+    - name: Build docker image
+      run: docker build -t dependency-risk-analyzer .
