@@ -1,3 +1,4 @@
+![CI Pipeline](https://github.com/abhinav8925/AI-Dependency-Risk-Analyzer/actions/workflows/ci.yml/badge.svg)
 # 🛡️ AI-Powered Dependency Risk Analyzer
 
 > **A production-grade software supply chain security analyzer with AI explanations and deterministic fallback logic**
