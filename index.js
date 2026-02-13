@@ -439,10 +439,10 @@ const { Log } = require("ethers");
 
 // CI Test -  Github Actions check.
 
+require("dotenv").config();
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 4000;
-require("dotenv").config();
 const http = require("http");
 const multer = require('multer');
 const fs = require("fs");
