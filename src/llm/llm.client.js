@@ -7,20 +7,22 @@ function callLLM(prompt) {
     return Promise.reject(new Error("AI_DISABLED"));
   }
 
-  const isDocker = process.env.RUNNING_IN_DOCKER === "true";
-  const host=isDocker ? "host.docker.internal" :  "127.0.0.1";
+  // const isDocker = process.env.RUNNING_IN_DOCKER === "true";
+  // const host=isDocker ? "host.docker.internal" :  "127.0.0.1";
+
+  const host=process.env.RUNNING_IN_DOCKER === "true" ? "ollama" : "127.0.0.1";
   const port=Number(process.env.OLLAMA_PORT) || 11434;
 
   
 
 
   return new Promise((resolve, reject) => {
-  
-    let body="";
+    let finished = false
+    // let body="";
     const payload = JSON.stringify({
-      model: "llama3",
+      model: "phi3:mini",
       prompt,
-      stream: false,
+      stream: true,
       options: {
         num_predict: 120,
         temperature: 0.4
@@ -39,32 +41,43 @@ function callLLM(prompt) {
         timeout: 30000
       },
       (res) => {
+        let fullResponse ="";
         
-        res.setEncoding("utf8");
-        res.on("data", (chunk) => {body += chunk});
+        // res.setEncoding("utf8");
+
+        res.on("data", (chunk) => {
+          const lines = chunk
+          .toString()
+          .split("\n")
+          .filter(Boolean);
+
+          for(const line of lines){
+            try{
+              const parsed = JSON.parse(line);
+              if(parsed.response){
+                fullResponse+=parsed.response;
+              }
+            }catch{}
+          }
+        });
 
         res.on("end", () => {
-          try {
-              const json = JSON.parse(body);
-              if(!json.response){
-                return reject(new Error ("EMPTY_LLM_RESPONSE"));
-              }
-              resolve(json.response.trim());
-            } catch (e) {
-              reject(e);
-            }
-          });
+          if(finished)  return;
+          finished = true;
+        
+          if(!fullResponse.trim()){
+            return reject(new Error("EMPTY_LLM_RESPONSE"));
+          }
+          resolve(fullResponse.trim());
         });
+      })
+        
     
-  req.on("timeout",()=>{
-    // if(finished)  return;
-    // finished=true;
-    req.destroy();
-    reject(new Error ("LLM_TIMEOUT"))
-  })
-   
-
-  req.on("error",reject);
+ req.on("error",(err)=>{
+  if(finished)  return;
+  finished=true;
+  reject(err);
+ })
   req.write(payload);
   req.end();
 });
