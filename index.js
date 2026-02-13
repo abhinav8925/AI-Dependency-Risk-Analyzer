@@ -497,14 +497,14 @@ app.get("/health",(req,res)=>{
         service:"dependency-risk-analyzer"
     })
 })
-app.post("/health",(req,res)=>{
-    return res.status(200).json({
-         ok:true,
-         service: "dependency-risk-analyzer",
-         message:"Server is healthy.",
-         time: new Date().toISOString()
-        });
-});
+// app.post("/health",(req,res)=>{
+//     return res.status(200).json({
+//          ok:true,
+//          service: "dependency-risk-analyzer",
+//          message:"Server is healthy.",
+//          time: new Date().toISOString()
+//         });
+// });
 
 app.post("/analyze", upload.single("file"), async(req, res, next) => {
     const startTime = Date.now();
