@@ -1,5 +1,5 @@
 const http = require("http");
-const { FINAL_DECISION } = require("../core/finalDecision.builder");
+// const { FINAL_DECISION } = require("../core/finalDecision.builder");
 
 function callLLM(prompt) {
 
@@ -7,31 +7,26 @@ function callLLM(prompt) {
     return Promise.reject(new Error("AI_DISABLED"));
   }
 
-  // const isDocker = process.env.RUNNING_IN_DOCKER === "true";
-  // const host=isDocker ? "host.docker.internal" :  "127.0.0.1";
-
-  const host=process.env.RUNNING_IN_DOCKER === "true" ? "ollama" : "127.0.0.1";
-  const port=Number(process.env.OLLAMA_PORT) || 11434;
-
-  
-
+  const isDocker = process.env.RUNNING_IN_DOCKER === "true";
+  const hostname=isDocker ? "host.docker.internal" : "127.0.0.1";
+  // const port=;/
 
   return new Promise((resolve, reject) => {
     let finished = false
-    // let body="";
+    
     const payload = JSON.stringify({
       model: "phi3:mini",
       prompt,
-      stream: true,
+      stream: false,
       options: {
         num_predict: 120,
-        temperature: 0.4
+        // temperature: 0.4
       }
     });  
     const req = http.request(
       {
-        hostname: host,
-        port,
+        hostname,
+        port:Number(process.env.OLLAMA_PORT) || 11434,
         path: "/api/generate",
         method: "POST",
         headers: {
@@ -40,46 +35,36 @@ function callLLM(prompt) {
         },
         timeout: 30000
       },
+      
       (res) => {
-        let fullResponse ="";
-        
-        // res.setEncoding("utf8");
+        let body = "";
+        res.on("data",chunk =>body+=chunk);
+        res.on("end",()=>{
+          if(finished)  return;
+          finished=true;
 
-        res.on("data", (chunk) => {
-          const lines = chunk
-          .toString()
-          .split("\n")
-          .filter(Boolean);
+          const lines = body.split("\n").filter(Boolean);
 
+          let full = "";
           for(const line of lines){
             try{
               const parsed = JSON.parse(line);
-              if(parsed.response){
-                fullResponse+=parsed.response;
-              }
+              if(parsed.response) full+=parsed.response;
             }catch{}
           }
-        });
 
-        res.on("end", () => {
-          if(finished)  return;
-          finished = true;
-        
-          if(!fullResponse.trim()){
-            return reject(new Error("EMPTY_LLM_RESPONSE"));
-          }
-          resolve(fullResponse.trim());
-        });
+          if(!full.trim())  return reject(new Error("EMPTY_RESPONSE"));
+          resolve(full.trim());
+        })
       })
-        
     
- req.on("error",(err)=>{
-  if(finished)  return;
-  finished=true;
-  reject(err);
- })
-  req.write(payload);
-  req.end();
-});
-}
+      req.on("error",(err)=>{
+        if(finished)  return;
+        finished=true;
+        reject(err);
+      })
+      req.write(payload);
+        req.end();
+      });
+      }
 module.exports = { callLLM };
