@@ -485,6 +485,18 @@ const upload = multer({
 });
 
 
+
+
+app.get("/",(req,res)=>{
+    res.send("AI Dependency Risk Analyzer API is running.");
+})
+
+app.get("/health",(req,res)=>{
+    res.json({
+        ok:true,
+        service:"dependency-risk-analyzer"
+    })
+})
 app.post("/health",(req,res)=>{
     return res.status(200).json({
          ok:true,
