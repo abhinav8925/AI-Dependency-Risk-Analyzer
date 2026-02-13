@@ -1,126 +1,289 @@
 ![CI Pipeline](https://github.com/abhinav8925/AI-Dependency-Risk-Analyzer/actions/workflows/ci.yml/badge.svg)
 # 🛡️ AI-Powered Dependency Risk Analyzer
 
-> **A production-grade software supply chain security analyzer with AI explanations and deterministic fallback logic**
+## 🔗 **Live Demo**
+👉 **Public API Endpoint:**  
+**https://ai-dependency-risk-analyzer.onrender.com**
+
+> ⚠️ Note: The service runs on Render Free Tier, so the first request may take **30–60 seconds** to wake up.
 
 ---
 
-## 📌 Overview
+## 📌 **Overview**
 
-**AI-Powered Dependency Risk Analyzer** is a backend system that analyzes a project’s `package.json` to identify **security, vulnerability, and policy risks** in third-party dependencies.
+**AI-Powered Dependency Risk Analyzer** is a production-grade backend system designed to analyze a project's `package.json` and detect security risks in third-party dependencies.
 
-The system combines:
+It combines:
 
-- **Rule-based deterministic security analysis**
-- **AI-generated security explanations (via LLMs)**
-- **Graceful fallback mechanisms** to ensure reliability when AI is slow or unavailable
+- ✅ Deterministic rule-based risk analysis  
+- ✅ AI-generated security explanations  
+- ✅ Guaranteed fallback mechanisms for reliability  
 
-This project is designed with **real-world production constraints** in mind — latency, reliability, and failure handling are first-class citizens.
+This project demonstrates **real-world AI system engineering**, focusing on **latency control, failure handling, and production safety**.
 
 ---
 
-## 🚀 Key Features
+## 🚀 **Key Features**
 
-### ✅ Static Dependency Risk Analysis
+### 🔍 **Static Dependency Risk Analysis**
 - Scans both `dependencies` and `devDependencies`
-- Detects high-risk packages, vulnerable versions, and license issues
-
-### ✅ Final Risk Decision Engine
-- Produces **BLOCK / WARN / ALLOW** decisions
-- Backed by explicit escalation and policy rules
-
-### ✅ AI-Generated Security Explanations
-- Uses a Large Language Model to explain **why** a decision was made
-- Generates human-readable, security-focused summaries
-
-### ✅ Rule-Based Fallback (Production Safe)
-- Automatically falls back when AI is slow or unavailable
-- **Guarantees zero request failures**
-
-### ✅ Demo Mode for AI Evaluation
-- Optional `demo` mode with extended AI timeouts
-- Useful for interviews and live demonstrations
-
-### ✅ Dockerized Backend
-- Fully containerized Node.js backend
-- Environment-driven configuration
+- Detects:
+  - Vulnerable packages
+  - High-risk versions
+  - License concerns
 
 ---
 
-## 🧠 Why This Project Is Different
+### ⚖️ **Final Risk Decision Engine**
+Generates a clear decision:
 
-Most “AI projects” **break when the AI fails**.
+- **BLOCK**
+- **WARN**
+- **ALLOW**
 
-**This one doesn’t.**
-
-### ✔ Real-World Engineering Decisions
-- AI calls are **time-bounded**
-- Fallback logic is **explicit and guaranteed**
-- System always returns a valid response
-- No request ever hangs indefinitely
-
-> This is how AI systems are built in production — not demos.
+Based on explicit policy rules and risk severity.
 
 ---
 
-## 🏗️ Architecture (High Level)
-
-Client (Postman / Frontend) | v Node.js API (Express) | +--> Rule-Based Analysis Engine | +--> AI Explanation Engine (LLM) | +--> Timeout / Fallback Handler
+### 🤖 **AI Security Explanation Engine**
+- Uses a Large Language Model (LLM)
+- Produces human-readable security reasoning
+- Explains *why* a dependency is risky
 
 ---
 
-## 🔌 API Endpoints
+### 🛟 **Deterministic Fallback Logic**
+If AI:
 
-### 🔹 Health Check
-POST /health
+- Times out
+- Fails
+- Is unavailable
 
+System automatically switches to rule-based explanations.
+
+✅ **Zero request failures**  
+✅ **No hanging APIs**  
+✅ **Production-safe reliability**
+
+---
+
+### 🎯 **Demo Mode**
+Supports extended AI timeout for demonstration:
+
+```
+/explain/:analysisId?mode=demo
+```
+
+Ensures high probability of AI response during interviews.
+
+---
+
+### 🐳 **Dockerized Architecture**
+- Fully containerized backend
+- Environment-based configuration
+- Works locally & in containers seamlessly
+
+---
+
+### ☁️ **Cloud Deployment**
+- Live hosted on **Render**
+- CI/CD pipeline using **GitHub Actions**
+- Automated Docker builds & pushes
+
+---
+
+## 🧠 **Why This Project Is Unique**
+
+Most AI projects fail when the AI fails.
+
+This one **never does**.
+
+### ✔ Real Production Engineering Patterns
+
+- Time-bounded AI calls
+- Explicit fallback logic
+- Guaranteed responses
+- Failure-safe architecture
+
+This mirrors **how enterprise AI systems are built**.
+
+---
+
+## 🏗️ **System Architecture**
+
+```
+Client (Postman / Frontend)
+        |
+        v
+Node.js API (Express)
+        |
+        ├── Rule-Based Risk Engine
+        ├── AI Explanation Engine (LLM)
+        └── Timeout & Fallback Handler
+```
+
+---
+
+## 📂 **Project Structure**
+
+```
+dependency-risk-analyzer-backend/
+│
+├── src/
+│   ├── core/           # Decision builders
+│   ├── services/       # Risk analysis logic
+│   ├── explanations/   # AI & rule explanations
+│   ├── llm/            # LLM client
+│   ├── store/          # In-memory storage
+│   ├── middlewares/    # Validation
+│   └── utils/          # Helpers
+│
+├── uploads/
+├── index.js
+├── Dockerfile
+├── docker-compose.yml
+└── README.md
+```
+
+---
+
+## 🔌 **API Endpoints**
+
+---
+
+### 🩺 Health Check
+
+**POST** `/health`
+
+Response:
+```json
 {
   "ok": true,
-  "service": "dependency-risk-analyzer",
-  "message": "Server is healthy."
+  "service": "dependency-risk-analyzer"
 }
+```
 
-🔹 Analyze Dependencies
-POST /analyze
+---
 
-Input
-Multipart form-data
+### 📦 Analyze Dependencies
 
-Upload a package.json file
+**POST** `/analyze`
+
+Upload `package.json` as form-data.
+
+Response:
+```json
 {
   "success": true,
   "analysisId": "uuid",
-  "finalDecision": {
-    "action": "BLOCK"
-  },
-  "summary": {
-    "totalDependencies": 7,
-    "riskSeverity": "HIGH"
-  }
+  "finalDecision": { "action": "BLOCK" }
 }
+```
 
-🔹 Get Explanation (AI + Fallback)
-POST /explain/:analysisId
+---
 
-Demo Mode
+### 🧠 Get Explanation
 
-POST /explain/:analysisId?mode=demo
+**POST** `/explain/:analysisId`
 
-{
-  "success": true,
-  "explanation": {
-    "version": "v2",
-    "source": "AI",
-    "explanation": "Human-readable security explanation..."
-  },
-  "aistatus": "AI"
-}
-Fallback response
-{
-  "success": true,
-  "explanation": {
-    "version": "v1",
-    "primaryReason": "High severity vulnerabilities detected."
-  },
-  "aistatus": "RULE_BASED"
-}
+Demo Mode:
+```
+/explain/:analysisId?mode=demo
+```
+
+---
+
+## ⏱️ **AI Timeout Strategy**
+
+| Mode | Timeout | Behavior |
+|------|--------|----------|
+| Normal | ~30s | AI attempt → fallback |
+| Demo | ~60s | Higher AI success rate |
+
+---
+
+## ⚙️ **Environment Variables**
+
+```
+PORT=4000
+DISABLE_AI=false
+LLM_PROVIDER=ollama
+OLLAMA_HOST=127.0.0.1
+OLLAMA_PORT=11434
+```
+
+---
+
+## 🐳 **Docker Usage**
+
+Build:
+
+```
+docker build -t dependency-risk-analyzer .
+```
+
+Run:
+
+```
+docker run -p 4000:4000 dependency-risk-analyzer
+```
+
+---
+
+## 🔄 **CI/CD Pipeline**
+
+Implemented using **GitHub Actions**.
+
+Pipeline automatically:
+
+- Installs dependencies
+- Runs health checks
+- Builds Docker image
+- Pushes image to Docker Hub
+
+---
+
+## ☁️ **Live Deployment**
+
+Hosted on **Render Cloud Platform**.
+
+### 🌍 Public API URL:
+
+👉 **https://ai-dependency-risk-analyzer.onrender.com**
+
+---
+
+## 🎯 **Use Cases**
+
+- Software supply chain security
+- Dependency risk auditing
+- DevSecOps pipelines
+- Security compliance analysis
+
+---
+
+## 🚀 **Future Enhancements**
+
+- Authentication & API keys
+- Frontend dashboard
+- Persistent database
+- SBOM ingestion
+- CVE database integration
+- Kubernetes deployment
+
+---
+
+## 👨‍💻 **Author**
+
+### **Abhinav Anand**
+Full-Stack Developer | AI & Security Enthusiast
+
+- MERN Stack Developer
+- DevOps & Cloud Enthusiast
+- AI-Driven Security Solutions Builder
+
+---
+
+## ⭐ **If you like this project**
+
+Please ⭐ the repository and share!
