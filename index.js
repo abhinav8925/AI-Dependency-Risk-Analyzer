@@ -442,6 +442,7 @@ const { Log } = require("ethers");
 // 
 const express = require("express");
 const app = express();
+app.use(express.static("public"))
 const PORT = process.env.PORT || 4000;
 if(process.env.NODE_ENV!== "production"){
 require("dotenv").config();
