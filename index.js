@@ -50,29 +50,10 @@ const upload = multer({
 });
 
 
-
+const guestScans = {}
 
 app.get("/", (req, res) => {
-  res.json({
-    message: "🛡️ AI Dependency Risk Analyzer API",
-    status: "RUNNING",
-    usage: {
-      step1: "POST /analyze → Upload a package.json file (form-data key: file)",
-      step2: "POST /explain/{analysisId} → Get security explanation"
-    },
-    importantNote: {
-      liveAPI: "Public cloud deployment provides rule-based explanations (V1) for reliability.",
-      aiMode: "Full AI explanations are available when running locally with Ollama.",
-      reason: "Cloud environments cannot run local LLM models due to memory limitations."
-    },
-    localAIInstructions: [
-      "1️⃣ Install Ollama",
-      "2️⃣ Run: ollama run llama3",
-      "3️⃣ Start backend locally: npm run dev",
-      "4️⃣ Use ?mode=demo to force AI explanations"
-    ],
-    healthCheck: "/health"
-  });
+  res.sendFile(__dirname + "/public/landing.html")
 });
 
 app.get("/health",(req,res)=>{
@@ -92,6 +73,17 @@ app.get("/health",(req,res)=>{
 
 app.post("/analyze", upload.single("file"), async(req, res, next) => {
     const startTime = Date.now();
+    const ip = req.ip
+    if(!guestScans[ip]){
+        guestScans[ip]=0
+    }
+
+    if(guestScans[ip]>=1){
+        return res.status(403).json({
+            error: "Guest scan limit reached. Please login."
+        })
+    }
+    guestScans[ip]++
     
     try {
         if (!req.file) {
